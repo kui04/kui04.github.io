@@ -8,7 +8,6 @@ import expressiveCode from "astro-expressive-code";
 // https://astro.build/config
 export default defineConfig({
   site: "https://kui04.github.io",
-  base: "kui04.github.io",
   integrations: [
     expressiveCode({
       themes: ["dark-plus"],
