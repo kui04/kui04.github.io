@@ -1,8 +1,12 @@
-document.documentElement.classList.toggle(
-    "dark",
-    localStorage.theme === "dark" ||
-        (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches)
-);
+"use strict";
+
+const applyTheme = () => {
+    document.documentElement.classList.toggle(
+        "dark",
+        localStorage.theme === "dark" ||
+            (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches)
+    );
+};
 
 const toggleTheme = () => {
     const html = document.documentElement;
@@ -16,3 +20,7 @@ const getTheme = () => {
         window.matchMedia("(prefers-color-scheme: dark)").matches;
     return isDark ? "dark" : "light";
 };
+
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", applyTheme);
+document.addEventListener("astro:after-swap", applyTheme);
+applyTheme();

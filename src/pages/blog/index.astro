@@ -13,7 +13,7 @@ const uniqueTags = Array.from(new Set(tags));
 ---
 
 <PageLayout title={`${AUTHOR_NAME}的所有博客`} description={`${AUTHOR_NAME}的所有博客`}>
-  <div id="tagFilter" class="flex my-4" data-tags={uniqueTags}>
+  <div id="tagFilter" class="flex py-4" data-tags={uniqueTags}>
     {
       uniqueTags.map((tag: string) => (
         <span class="flex gap-0.5 text-sm dark:text-neutral-400 text-neutral-500 uppercase">
