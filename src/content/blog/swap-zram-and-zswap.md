@@ -60,13 +60,13 @@ zswap 默认可能已经启用，可以通过下面的命令查看开启情况
 cat /sys/module/zswap/parameters/enabled
 ```
 
-手动开启 zswap 前需要取保内核配置启用了 zswap，看到`CONFIG_ZSWAP=y`就说明启用了
+手动开启 zswap 前需要取保内核配置启用了 zswap，看到 `CONFIG_ZSWAP=y` 就说明启用了
 
 ```bash
 cat /boot/config-`uname -r` | grep -i zswap
 ```
 
-然后我们需要修改内核启动参数来开启 zswap，使用你熟悉的编辑器打开`/etc/default/grub`，在 `GRUB_CMDLINE_LINUX_DEFAULT` 中添加 `zswap.enabled=1` 等参数，例如：
+然后我们需要修改内核启动参数来开启 zswap，使用你熟悉的编辑器打开 `/etc/default/grub`，在 `GRUB_CMDLINE_LINUX_DEFAULT` 中添加 `zswap.enabled=1` 等参数，例如：
 
 ```bash
 # 开启 zswap, 使用压缩算法 LZ4, 压缩存储池分配器 zsmalloc
