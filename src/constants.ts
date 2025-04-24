@@ -7,6 +7,5 @@ export const SITE_DESCRIPTION = "个人小网站，记录一些有趣的东西�
 export const NAVIGATION = [
     { title: "主页", href: "/" },
     { title: "博客", href: "/blog" },
-    { title: "游乐场", href: "/playground" },
-    { title: "工具集", href: "/tool" },
+    { title: "休息一下:)", href: "/fun" },
 ];

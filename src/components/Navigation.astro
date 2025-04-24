@@ -21,7 +21,7 @@ const isActive = (href: string) => {
     NAVIGATION.map(({ title, href }) => (
       <a
         href={href}
-        class={`py-2 cursor-pointer 
+        class={`py-2 cursor-pointer font-mono
         ${isActive(href) ? "font-medium" : "dark:text-neutral-400/60 text-neutral-600/60"}`}
       >
         {title}
