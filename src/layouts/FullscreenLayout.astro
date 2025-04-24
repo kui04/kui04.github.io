@@ -1,6 +1,5 @@
 ---
 import "@/styles/global.css";
-import { SITE_TITLE, SITE_DESCRIPTION } from "@/constants";
 import BaseLayout from "./BaseLayout.astro";
 
 interface Props {
@@ -8,10 +7,10 @@ interface Props {
   description?: string;
 }
 
-const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
+const { title, description } = Astro.props;
 ---
 
-<BaseLayout>
+<BaseLayout title={title} description={description}>
   <main class="grow w-full">
     <slot />
   </main>
