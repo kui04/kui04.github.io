@@ -1,0 +1,23 @@
+---
+import { AUTHOR_NAME } from "@/constants";
+
+const today = new Date();
+---
+
+<footer class="h-24 min-h-16 max-w-3xl w-full mt-4 flex items-center justify-start">
+  <div>
+    <span>
+      &copy; {today.getFullYear()}
+      <a href="http://www.github.com/kui04" class="dark:text-blue-400 text-blue-500 cursor-pointer underline"
+        >&MediumSpace;{AUTHOR_NAME}&MediumSpace;</a
+      >&MediumSpace;All rights reserved.&MediumSpace;
+    </span>
+    <span>
+      Built with <a
+        href="https://astro.build"
+        target="_blank"
+        class="dark:text-blue-500 text-blue-500 cursor-pointer underline">&MediumSpace;Astro&MediumSpace;</a
+      >
+    </span>
+  </div>
+</footer>

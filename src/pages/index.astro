@@ -1,0 +1,16 @@
+---
+import { getCollection } from "astro:content";
+import PageLayout from "@/layouts/PageLayout.astro";
+import BlogCard from "@/components/BlogCard.astro";
+
+const recentBlogs = (await getCollection("blog"))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 3);
+---
+
+<PageLayout>
+  <p class="py-4 text-neutral-800 dark:text-neutral-200">最新的文章</p>
+  <div class="grid grid-cols-1 gap-4">
+    {recentBlogs.map((blog) => <BlogCard blog={blog} />)}
+  </div>
+</PageLayout>

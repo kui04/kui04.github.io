@@ -1,0 +1,31 @@
+---
+import { NAVIGATION } from "@/constants";
+
+const pathname = Astro.url.pathname;
+console.log(pathname);
+
+const isActive = (href: string) => {
+  if (pathname === href) return true;
+  return (
+    pathname.startsWith(href) &&
+    (pathname[href.length] === "/" || pathname[href.length] === undefined)
+  );
+};
+---
+
+<div
+  class="mb-4 gap-4 flex overflow-x-auto whitespace-nowrap text-xl
+  [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+>
+  {
+    NAVIGATION.map(({ title, href }) => (
+      <a
+        href={href}
+        class={`py-2 cursor-pointer 
+        ${isActive(href) ? "font-medium" : "dark:text-neutral-400/60 text-neutral-600/60"}`}
+      >
+        {title}
+      </a>
+    ))
+  }
+</div>

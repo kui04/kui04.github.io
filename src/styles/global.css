@@ -1,0 +1,21 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@plugin 'tailwind-scrollbar';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@font-face {
+  font-family: FiraCode;
+  font-style: normal;
+  font-weight: 200 500;
+  font-display: swap;
+  src: url("/fonts/firacode-regular.woff2") format("woff2");
+}
+
+@theme {
+  --font-mono: "FiraCode", "monospace";
+}
+/* 
+body {
+  background: radial-gradient(circle at top right, rgba(255,255,255,0.5), transparent 70%);
+} */

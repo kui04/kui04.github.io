@@ -1,0 +1,56 @@
+---
+import { getCollection } from "astro:content";
+import { AUTHOR_NAME } from "@/constants";
+import PageLayout from "@/layouts/PageLayout.astro";
+import BlogCard from "@/components/BlogCard.astro";
+
+const blogs = (await getCollection("blog")).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+
+const tags = blogs.flatMap((blog) => blog.data.tags);
+const uniqueTags = Array.from(new Set(tags));
+---
+
+<PageLayout title={`${AUTHOR_NAME}的所有博客`} description={`${AUTHOR_NAME}的所有博客`}>
+  <div id="tagFilter" class="flex my-4" data-tags={uniqueTags}>
+    {
+      uniqueTags.map((tag: string) => (
+        <span class="flex gap-0.5 text-sm dark:text-neutral-400 text-neutral-500 uppercase">
+          <input id={`checkbox-${tag}`} type="checkbox" value={tag} class="" />
+          <label for={`checkbox-${tag}`} class="mr-2">
+            #&ThinSpace;{tag}
+          </label>
+        </span>
+      ))
+    }
+  </div>
+  <div id="blogContainer" class="grid grid-cols-1 gap-6">
+    {blogs.map((blog) => <BlogCard blog={blog} />)}
+  </div>
+</PageLayout>
+
+<script>
+  const tagFilter = document.getElementById("tagFilter");
+  const blogContainer = document.getElementById("blogContainer");
+
+  const checkboxes = tagFilter?.querySelectorAll('input[type="checkbox"]') as NodeListOf<HTMLInputElement>;
+  const blogCards = blogContainer?.querySelectorAll("[data-tags]") as NodeListOf<HTMLInputElement>;
+
+  function filterBlogs() {
+    const selectedTags = Array.from(checkboxes)
+      .filter((checkbox) => checkbox.checked)
+      .map((checkbox) => checkbox.value);
+
+    blogCards?.forEach((card) => {
+      card.style.display =
+        selectedTags.length === 0 || selectedTags.some((tag) => card.dataset.tags?.includes(tag))
+          ? ""
+          : "none";
+    });
+  }
+
+  checkboxes.forEach((checkbox) => {
+    checkbox.addEventListener("change", filterBlogs);
+  });
+</script>

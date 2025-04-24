@@ -1,0 +1,32 @@
+---
+import type { GetStaticPaths } from "astro";
+import { type CollectionEntry, getCollection } from "astro:content";
+import { render } from "astro:content";
+import PageLayout from "@/layouts/PageLayout.astro";
+import FormattedDate from "@/components/FormattedDate.astro";
+
+interface Props extends CollectionEntry<"blog"> {}
+
+export const getStaticPaths = (async () => {
+  const blogs = await getCollection("blog");
+  return blogs.map((blog) => ({
+    params: { slug: blog.id },
+    props: blog,
+  }));
+}) satisfies GetStaticPaths;
+
+const blog = Astro.props;
+const { Content } = await render(blog);
+---
+
+<PageLayout {...blog.data}>
+  <article class="prose prose-neutral dark:prose-invert font-serif w-full max-w-none">
+    <h1>{blog.data.title}</h1>
+    <div class="text-sm text-gray-500 dark:text-gray-400">
+      <FormattedDate date={blog.data.pubDate} />
+    </div>
+    <div>
+      <Content />
+    </div>
+  </article>
+</PageLayout>
