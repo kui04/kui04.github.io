@@ -7,21 +7,25 @@ import BaseHead from "@/components/BaseHead.astro";
 interface Props {
   title?: string;
   description?: string;
+  bodyClass?: string;
 }
 
-const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
+const { title = SITE_TITLE, description = SITE_DESCRIPTION, bodyClass = "" } = Astro.props;
 ---
 
 <!doctype html>
 <html
   lang="zh"
-  class="min-h-dvh bg-neutral-200 dark:bg-neutral-800 bg-fixed bg-center bg-[size:1rem_1rem]
+  class="h-dvh scrollbar-thin w-[calc(100vw-10px)]
+  bg-fixed bg-[size:1rem_1rem] bg-[position:-0.5rem_-0.5rem]
   bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)]
-  scrollbar-track-transparent scrollbar-thumb-neutral-400 dark:scrollbar-thumb-neutral-600"
+  bg-neutral-200 dark:bg-neutral-800
+  scrollbar-track-neutral-200 dark:scrollbar-track-neutral-800
+  scrollbar-thumb-neutral-400 dark:scrollbar-thumb-neutral-600"
 >
   <BaseHead title={title} description={description} />
   <ClientRouter />
-  <body class="h-dvh font-serif dark:text-white">
+  <body class={bodyClass}>
     <slot />
   </body>
 </html>
