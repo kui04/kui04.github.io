@@ -9,7 +9,7 @@ const recentBlogs = (await getCollection("blog"))
 ---
 
 <PageLayout>
-  <p class="py-4 text-lightest-foreground">最新的文章</p>
+  <p class="py-4 text-lightest-foreground h-14">最新的文章</p>
   <div class="grid grid-cols-1 gap-4">
     {recentBlogs.map((blog) => <BlogCard blog={blog} />)}
   </div>

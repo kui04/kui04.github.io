@@ -13,10 +13,10 @@ const uniqueTags = Array.from(new Set(tags));
 ---
 
 <PageLayout title={`${AUTHOR_NAME}的所有博客`} description={`${AUTHOR_NAME}的所有博客`}>
-  <div id="tagFilter" class="flex py-4" data-tags={uniqueTags}>
+  <div id="tagFilter" class="flex py-4 h-14 items-center text-sm text-dark-foreground" data-tags={uniqueTags}>
     {
       uniqueTags.map((tag: string) => (
-        <span class="flex gap-0.5 text-sm text-dark-foreground uppercase">
+        <span class="flex gap-0.5 uppercase">
           <input id={`checkbox-${tag}`} type="checkbox" value={tag} class="" />
           <label for={`checkbox-${tag}`} class="mr-2">
             #&ThinSpace;{tag}
