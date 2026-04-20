@@ -20,9 +20,11 @@ const { Content } = await render(blog);
 ---
 
 <PageLayout {...blog.data}>
-  <article class="prose prose-neutral dark:prose-invert font-serif w-full max-w-none">
+  <article
+    class="prose font-serif w-full max-w-none [--tw-prose-body:var(--color-default-foreground)] [--tw-prose-headings:var(--color-lightest-foreground)] [--tw-prose-lead:var(--color-light-foreground)] [--tw-prose-links:var(--color-blue)] [--tw-prose-bold:var(--color-lightest-foreground)] [--tw-prose-counters:var(--color-dark-foreground)] [--tw-prose-bullets:var(--color-dark-foreground)] [--tw-prose-hr:var(--color-selection-background)] [--tw-prose-quotes:var(--color-light-foreground)] [--tw-prose-quote-borders:var(--color-selection-background)] [--tw-prose-captions:var(--color-dark-foreground)] [--tw-prose-code:var(--color-green)] [--tw-prose-pre-code:var(--color-default-foreground)] [--tw-prose-pre-bg:var(--color-lighter-background)] [--tw-prose-th-borders:var(--color-selection-background)] [--tw-prose-td-borders:var(--color-selection-background)]"
+  >
     <h1>{blog.data.title}</h1>
-    <div class="text-sm text-gray-500 dark:text-gray-400">
+    <div class="text-sm text-dark-foreground">
       <FormattedDate date={blog.data.pubDate} />
     </div>
     <div>

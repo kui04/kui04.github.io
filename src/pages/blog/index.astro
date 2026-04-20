@@ -16,7 +16,7 @@ const uniqueTags = Array.from(new Set(tags));
   <div id="tagFilter" class="flex py-4" data-tags={uniqueTags}>
     {
       uniqueTags.map((tag: string) => (
-        <span class="flex gap-0.5 text-sm dark:text-neutral-400 text-neutral-500 uppercase">
+        <span class="flex gap-0.5 text-sm text-dark-foreground uppercase">
           <input id={`checkbox-${tag}`} type="checkbox" value={tag} class="" />
           <label for={`checkbox-${tag}`} class="mr-2">
             #&ThinSpace;{tag}

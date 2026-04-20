@@ -15,3 +15,45 @@
 @theme {
   --font-mono: "FiraCode", "monospace";
 }
+
+/* one-light */
+@theme {
+  --color-default-background: #fafafa;        /* base00 */
+  --color-lighter-background: #f0f0f1;        /* base01 */
+  --color-selection-background: #e5e5e6;      /* base02 */
+  --color-comments-invisible: #a0a1a7;        /* base03 */
+  --color-dark-foreground: #696c77;           /* base04 */
+  --color-default-foreground: #383a42;        /* base05 */
+  --color-light-foreground: #202227;          /* base06 */
+  --color-lightest-foreground: #090a0b;       /* base07 */
+
+  --color-red: #ca1243;       /* base08 */
+  --color-orange: #d75f00;    /* base09 */
+  --color-yellow: #c18401;    /* base0A */
+  --color-green: #50a14f;     /* base0B */
+  --color-cyan: #0184bc;      /* base0C */
+  --color-blue: #4078f2;      /* base0D */
+  --color-purple: #a626a4;    /* base0E */
+  --color-brown: #986801;     /* base0F */
+}
+
+/* material-darker */
+.dark {
+  --color-default-background: #212121;        /* base00 */
+  --color-lighter-background: #303030;        /* base01 */
+  --color-selection-background: #353535;      /* base02 */
+  --color-comments-invisible: #4A4A4A;        /* base03 */
+  --color-dark-foreground: #B2CCD6;           /* base04 */
+  --color-default-foreground: #EEFFFF;        /* base05 */
+  --color-light-foreground: #EEFFFF;          /* base06 */
+  --color-lightest-foreground: #FFFFFF;       /* base07 */
+
+  --color-red: #F07178;       /* base08 */
+  --color-orange: #F78C6C;    /* base09 */
+  --color-yellow: #FFCB6B;    /* base0A */
+  --color-green: #C3E88D;     /* base0B */
+  --color-cyan: #89DDFF;      /* base0C */
+  --color-blue: #82AAFF;      /* base0D */
+  --color-purple: #C792EA;    /* base0E */
+  --color-brown: #FF5370;     /* base0F */
+}

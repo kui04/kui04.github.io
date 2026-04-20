@@ -12,7 +12,7 @@ const { blog } = Astro.props;
 <div data-tags={blog.data.tags} class="py-4 flex flex-col gap-1 font-serif">
   <a
     href={`/blog/${blog.id}`}
-    class="w-max font-medium underline hover:text-blue-500 dark:hover:text-blue-400"
+    class="w-max font-medium underline hover:text-blue"
     data-astro-prefetch="viewport"
   >
     {blog.data.title}
@@ -21,13 +21,13 @@ const { blog } = Astro.props;
     {blog.data.description}
   </p>
   <div class="flex justify-between items-center">
-    <span class="dark:text-neutral-400 text-neutral-500">
+    <span class="text-dark-foreground">
       <FormattedDate date={blog.data.pubDate} />
     </span>
     <span>
       {
         blog.data.tags.map((tag) => (
-          <span class="p-1 text-sm dark:text-neutral-400 text-neutral-500">
+          <span class="p-1 text-sm text-dark-foreground">
             #&ThinSpace;{tag.toLocaleUpperCase()}
           </span>
         ))
