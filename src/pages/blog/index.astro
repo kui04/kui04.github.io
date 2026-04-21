@@ -1,31 +1,37 @@
 ---
 import { getCollection } from "astro:content";
-import { AUTHOR_NAME } from "@/constants";
+import BlogCard from "@/components/ui/BlogCard.astro";
+import { AUTHOR_NAME, SITE_TITLE } from "@/constants";
 import PageLayout from "@/layouts/PageLayout.astro";
-import BlogCard from "@/components/BlogCard.astro";
 
 const blogs = (await getCollection("blog")).sort(
-  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
 
 const tags = blogs.flatMap((blog) => blog.data.tags);
 const uniqueTags = Array.from(new Set(tags));
 ---
 
-<PageLayout title={`${AUTHOR_NAME}的所有博客`} description={`${AUTHOR_NAME}的所有博客`}>
-  <div id="tagFilter" class="flex py-4 h-14 items-center text-sm text-dark-foreground" data-tags={uniqueTags}>
+<PageLayout
+  title={`${SITE_TITLE} · 博客`}
+  description={`${AUTHOR_NAME} 的博客列表`}
+  mainClass="flex flex-col px-4 sm:px-6 lg:px-8 text-center"
+>
+  <div id="tagFilter" class="mt-8 mb-2 flex flex-wrap items-center gap-3" data-tags={uniqueTags}>
     {
       uniqueTags.map((tag: string) => (
-        <span class="flex gap-0.5 uppercase">
-          <input id={`checkbox-${tag}`} type="checkbox" value={tag} class="" />
-          <label for={`checkbox-${tag}`} class="mr-2">
-            #&ThinSpace;{tag}
-          </label>
-        </span>
+        <label
+          for={`checkbox-${tag}`}
+          class="inline-flex cursor-pointer items-center gap-2 border border-border px-2 py-1 text-sm text-text-secondary transition-colors hover:border-accent hover:text-accent"
+        >
+          <input id={`checkbox-${tag}`} type="checkbox" value={tag} class="peer sr-only" />
+          <span class="h-1.5 w-1.5 rounded-full bg-border transition-colors peer-checked:bg-accent" />
+          <span>#{tag.toLocaleUpperCase()}</span>
+        </label>
       ))
     }
   </div>
-  <div id="blogContainer" class="grid grid-cols-1 gap-6">
+  <div id="blogContainer" class="grid grid-cols-1 divide-y divide-dashed divide-accent/16">
     {blogs.map((blog) => <BlogCard blog={blog} />)}
   </div>
 </PageLayout>
@@ -35,7 +41,7 @@ const uniqueTags = Array.from(new Set(tags));
   const blogContainer = document.getElementById("blogContainer");
 
   const checkboxes = tagFilter?.querySelectorAll('input[type="checkbox"]') as NodeListOf<HTMLInputElement>;
-  const blogCards = blogContainer?.querySelectorAll("[data-tags]") as NodeListOf<HTMLInputElement>;
+  const blogCards = blogContainer?.querySelectorAll("[data-tags]") as NodeListOf<HTMLElement>;
 
   function filterBlogs() {
     const selectedTags = Array.from(checkboxes)
@@ -43,10 +49,9 @@ const uniqueTags = Array.from(new Set(tags));
       .map((checkbox) => checkbox.value);
 
     blogCards?.forEach((card) => {
+      const cardTags = (card.dataset.tags ?? "").split(",");
       card.style.display =
-        selectedTags.length === 0 || selectedTags.some((tag) => card.dataset.tags?.includes(tag))
-          ? ""
-          : "none";
+        selectedTags.length === 0 || selectedTags.some((tag) => cardTags.includes(tag)) ? "" : "none";
     });
   }
 

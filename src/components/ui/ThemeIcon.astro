@@ -1,33 +1,36 @@
-<button id="themeToggle" class="cursor-pointer" aria-label="Toggle theme">
+<button
+  id="themeToggle"
+  class="inline-flex h-9 w-9 cursor-pointer items-center justify-center text-text-secondary transition-colors hover:text-text"
+  aria-label="切换主题"
+  onclick="toggleTheme()"
+>
   <svg
-    onclick="toggleTheme()"
-    class="dark:hidden inline"
+    class="inline h-4 w-4 dark:hidden"
     xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
+    width="16"
+    height="16"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
     stroke-width="2"
     stroke-linecap="round"
     stroke-linejoin="round"
-    class="lucide lucide-sun-icon lucide-sun"
+    aria-hidden="true"
     ><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path
       d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path
       d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg
   >
   <svg
-    onclick="toggleTheme()"
-    class="hidden dark:inline"
+    class="hidden h-4 w-4 dark:inline"
     xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
+    width="16"
+    height="16"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
     stroke-width="2"
     stroke-linecap="round"
     stroke-linejoin="round"
-    class="lucide lucide-moon-icon lucide-moon"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg
+    aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg
   >
 </button>

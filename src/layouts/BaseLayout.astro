@@ -1,8 +1,8 @@
 ---
 import "@/styles/global.css";
 import { ClientRouter } from "astro:transitions";
-import { SITE_TITLE, SITE_DESCRIPTION } from "@/constants";
 import BaseHead from "@/components/BaseHead.astro";
+import { SITE_DESCRIPTION, SITE_TITLE } from "@/constants";
 
 interface Props {
   title?: string;
@@ -16,47 +16,11 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION, bodyClass = "" } = A
 <!doctype html>
 <html
   lang="zh"
-  class="h-dvh scrollbar-thin w-[calc(100vw-10px)]
-  bg-fixed bg-size-[1rem_1rem] bg-position-[-0.5rem_-0.5rem]
-  bg-[linear-gradient(to_right,var(--color-selection-background)_1px,transparent_1px),linear-gradient(to_bottom,var(--color-selection-background)_1px,transparent_1px)]
-  bg-lighter-background
-  scrollbar-track-lighter-background
-  scrollbar-thumb-comments-invisible"
+  class="min-h-dvh w-full sm:max-w-[calc(100dvw-15px)] bg-bg text-text flex flex-col justify-center items-center"
 >
   <BaseHead title={title} description={description} />
   <ClientRouter />
-  <body class={bodyClass}>
+  <body class={`flex-1 min-h-0 ${bodyClass}`.trim()}>
     <slot />
-    <script is:inline>
-      (() => {
-        const SCRIPT_ID = "snake-overlay-loader";
-
-        function inject() {
-          if (document.getElementById(SCRIPT_ID)) return;
-
-          const s = document.createElement("script");
-          s.id = SCRIPT_ID;
-          s.src = "/scripts/snake.js";
-          s.defer = true;
-          document.body.appendChild(s);
-        }
-
-        function schedule() {
-          if ("requestIdleCallback" in window) {
-            requestIdleCallback(inject, { timeout: 2500 });
-          } else {
-            setTimeout(inject, 0);
-          }
-        }
-
-        if (document.readyState === "complete") {
-          schedule();
-        } else {
-          window.addEventListener("load", schedule, { once: true });
-        }
-
-        document.addEventListener("astro:page-load", schedule);
-      })();
-    </script>
   </body>
 </html>

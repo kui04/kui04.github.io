@@ -1,9 +1,8 @@
 ---
+import { type CollectionEntry, getCollection, render } from "astro:content";
 import type { GetStaticPaths } from "astro";
-import { type CollectionEntry, getCollection } from "astro:content";
-import { render } from "astro:content";
+import FormattedDate from "@/components/ui/FormattedDate.astro";
 import PageLayout from "@/layouts/PageLayout.astro";
-import FormattedDate from "@/components/FormattedDate.astro";
 
 interface Props extends CollectionEntry<"blog"> {}
 
@@ -19,15 +18,23 @@ const blog = Astro.props;
 const { Content } = await render(blog);
 ---
 
-<PageLayout {...blog.data}>
-  <article
-    class="prose font-serif w-full max-w-none [--tw-prose-body:var(--color-default-foreground)] [--tw-prose-headings:var(--color-lightest-foreground)] [--tw-prose-lead:var(--color-light-foreground)] [--tw-prose-links:var(--color-blue)] [--tw-prose-bold:var(--color-lightest-foreground)] [--tw-prose-counters:var(--color-dark-foreground)] [--tw-prose-bullets:var(--color-dark-foreground)] [--tw-prose-hr:var(--color-selection-background)] [--tw-prose-quotes:var(--color-light-foreground)] [--tw-prose-quote-borders:var(--color-selection-background)] [--tw-prose-captions:var(--color-dark-foreground)] [--tw-prose-code:var(--color-green)] [--tw-prose-pre-code:var(--color-default-foreground)] [--tw-prose-pre-bg:var(--color-lighter-background)] [--tw-prose-th-borders:var(--color-selection-background)] [--tw-prose-td-borders:var(--color-selection-background)]"
-  >
-    <h1>{blog.data.title}</h1>
-    <div class="text-sm text-dark-foreground">
-      <FormattedDate date={blog.data.pubDate} />
-    </div>
-    <div>
+<PageLayout {...blog.data} mainClass="flex flex-col px-4 sm:px-6 lg:px-8">
+  <article class="mx-auto w-full mt-8">
+    <header class="border-b border-border pb-6">
+      <h1
+        class="text-4xl leading-tight text-text sm:text-5xl"
+        style="font-family: 'STSong', 'Songti SC', 'Noto Serif CJK SC', 'Source Han Serif SC', serif;"
+      >
+        {blog.data.title}
+      </h1>
+      <div class="mt-4 text-sm tracking-[0.08em] text-text-secondary">
+        <FormattedDate date={blog.data.pubDate} />
+      </div>
+    </header>
+
+    <div
+      class="prose mt-8 max-w-none [--tw-prose-body:var(--color-text-secondary)] [--tw-prose-headings:var(--color-text)] [--tw-prose-lead:var(--color-text-secondary)] [--tw-prose-links:var(--color-accent)] [--tw-prose-bold:var(--color-text)] [--tw-prose-counters:var(--color-text-secondary)] [--tw-prose-bullets:var(--color-text-secondary)] [--tw-prose-hr:var(--color-border)] [--tw-prose-quotes:var(--color-text)] [--tw-prose-quote-borders:var(--color-border)] [--tw-prose-captions:var(--color-text-secondary)] [--tw-prose-code:var(--color-accent)] [--tw-prose-pre-code:var(--color-text)] [--tw-prose-pre-bg:var(--color-surface)] [--tw-prose-th-borders:var(--color-border)] [--tw-prose-td-borders:var(--color-border)]"
+    >
       <Content />
     </div>
   </article>

@@ -17,6 +17,7 @@
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
             bashInteractive
+            biome
             nodejs
             pnpm
           ];

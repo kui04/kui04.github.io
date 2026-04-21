@@ -1,16 +1,41 @@
 ---
-import { getCollection } from "astro:content";
+import { HOME_LANDING, SITE_DESCRIPTION, SITE_TITLE } from "@/constants";
 import PageLayout from "@/layouts/PageLayout.astro";
-import BlogCard from "@/components/BlogCard.astro";
-
-const recentBlogs = (await getCollection("blog"))
-  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-  .slice(0, 3);
 ---
 
-<PageLayout>
-  <p class="py-4 text-lightest-foreground h-14">最新的文章</p>
-  <div class="grid grid-cols-1 gap-4">
-    {recentBlogs.map((blog) => <BlogCard blog={blog} />)}
+<PageLayout
+  title={SITE_TITLE}
+  description={SITE_DESCRIPTION}
+  mainClass="flex flex-col items-center justify-center py-10 text-center px-4 sm:px-6 lg:px-8"
+>
+  <div class="mb-10 flex w-full max-w-xs md:max-w-sm items-center gap-4 text-accent">
+    <span class="h-px flex-1 bg-border"></span>
+    <span class="text-xl">•</span>
+    <span class="h-px flex-1 bg-border"></span>
+  </div>
+
+  <p class="text-xs tracking-[0.45em] text-text-secondary">{HOME_LANDING.eyebrow}</p>
+
+  <h1 class="mt-10 text-5xl text-text sm:text-7xl">
+    {HOME_LANDING.title}
+  </h1>
+
+  <p class="mt-8 text-lg text-text-secondary sm:text-2xl">
+    {HOME_LANDING.subtitle}
+  </p>
+  <p class="mt-2 text-lg text-text-secondary sm:text-2xl">
+    {HOME_LANDING.description}
+  </p>
+
+  <a
+    href="/blog"
+    class="mt-8 border-[1.5px] border-accent -rotate-12 hover:rotate-0 transition-all duration-200 px-2 py-1 inline-flex items-center justify-center"
+    >博客</a
+  >
+
+  <div class="mt-10 flex w-full max-w-xs md:max-w-sm items-center gap-4 text-accent">
+    <span class="h-px flex-1 bg-border"></span>
+    <span class="text-xl">•</span>
+    <span class="h-px flex-1 bg-border"></span>
   </div>
 </PageLayout>

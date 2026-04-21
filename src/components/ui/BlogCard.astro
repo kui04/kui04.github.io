@@ -1,0 +1,39 @@
+---
+import type { CollectionEntry } from "astro:content";
+import FormattedDate from "@/components/ui/FormattedDate.astro";
+
+type Props = {
+  blog: CollectionEntry<"blog">;
+};
+
+const { blog } = Astro.props;
+---
+
+<div data-tags={blog.data.tags.join(",")} class="grid grid-cols-1 gap-4 py-6">
+  <a
+    href={`/blog/${blog.id}`}
+    class="inline-flex text-lg text-text transition-colors hover:text-accent line-clamp-1"
+    data-astro-prefetch="viewport"
+  >
+    {blog.data.title}
+  </a>
+
+  <p class="text-text-secondary mt-2 text-start line-clamp-2">
+    {blog.data.description}
+  </p>
+
+  <div class="mt-1 flex flex-wrap items-center justify-between gap-3 text-sm text-text-secondary">
+    <span class="tracking-[0.06em]">
+      <FormattedDate date={blog.data.pubDate} />
+    </span>
+    <span class="flex flex-wrap justify-end gap-2 me-4 gap-x-1.5">
+      {
+        blog.data.tags.map((tag) => (
+          <span class="inline-block text-[9px] px-1.5 py-0.5 border tracking-widest">
+            #{tag.toLocaleUpperCase()}
+          </span>
+        ))
+      }
+    </span>
+  </div>
+</div>
