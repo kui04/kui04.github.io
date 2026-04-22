@@ -1,8 +1,12 @@
 ---
 
 ---
+
 <!-- Shader Reference: https://github.com/bsehovac/shader-program/ -->
-<canvas id="snow-canvas" class="fixed top-0 left-0 -z-50 h-full w-full pointer-events-none"></canvas>
+<canvas
+  id="snow-canvas"
+  class="fixed top-0 left-0 -z-50 h-full w-full pointer-events-none"
+  transition:persist="snow-background"></canvas>
 
 <script>
   (() => {
@@ -47,8 +51,7 @@
       img.src = src;
     }
 
-    // prettier-ignore
-    const SNOWFLAKE_TEXTURE = "data:image/png;base64,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";
+    const SNOWFLAKE_TEXTURE = "/images/snow-flake.png";
     const CONFIG = {
       COUNT: 4000,
       GRAVITY: 100,
@@ -59,8 +62,50 @@
       CAM_Z: 100,
     };
 
-    const canvas = document.getElementById("snow-canvas") as HTMLCanvasElement;
-    const gl = canvas.getContext("webgl") as WebGLRenderingContext;
+    const globalWindow = window as Window & {
+      __snowBackgroundState?: {
+        rebindCanvas: () => void;
+        ensureRunning: () => void;
+      };
+    };
+
+    const existingState = globalWindow.__snowBackgroundState;
+    if (existingState) {
+      existingState.rebindCanvas();
+      existingState.ensureRunning();
+      return;
+    }
+
+    let canvas = document.getElementById("snow-canvas") as HTMLCanvasElement | null;
+    let gl: WebGLRenderingContext;
+    let program: WebGLProgram;
+    let uniforms: {
+      time: WebGLUniformLocation | null;
+      resolution: WebGLUniformLocation | null;
+      projection: WebGLUniformLocation | null;
+      worldSize: WebGLUniformLocation | null;
+      gravity: WebGLUniformLocation | null;
+      wind: WebGLUniformLocation | null;
+      texture: WebGLUniformLocation | null;
+    };
+    let buffers: {
+      position: WebGLBuffer;
+      color: WebGLBuffer;
+      rotation: WebGLBuffer;
+      speed: WebGLBuffer;
+      size: WebGLBuffer;
+    };
+
+    let winW = 0;
+    let winH = 0;
+    let particleCount = 0;
+    let frameId = 0;
+    let isRunning = false;
+    let isInitialized = false;
+    let isStarting = false;
+    let initScheduled = false;
+    let elapsedMs = 0;
+    let lastTime = 0;
 
     const vertexShader = `
       precision highp float;
@@ -114,50 +159,19 @@
       }
     `;
 
-    const vs = gl.createShader(gl.VERTEX_SHADER) as WebGLShader;
-    gl.shaderSource(vs, vertexShader);
-    gl.compileShader(vs);
-
-    const fs = gl.createShader(gl.FRAGMENT_SHADER) as WebGLShader;
-    gl.shaderSource(fs, fragmentShader);
-    gl.compileShader(fs);
-
-    const program = gl.createProgram() as WebGLProgram;
-    gl.attachShader(program, vs);
-    gl.attachShader(program, fs);
-    gl.linkProgram(program);
-    gl.useProgram(program);
-
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
-    gl.disable(gl.DEPTH_TEST);
-    gl.enable(gl.CULL_FACE);
-
-    const uniforms = {
-      time: gl.getUniformLocation(program, "u_time"),
-      resolution: gl.getUniformLocation(program, "u_resolution"),
-      projection: gl.getUniformLocation(program, "u_projection"),
-      worldSize: gl.getUniformLocation(program, "u_worldSize"),
-      gravity: gl.getUniformLocation(program, "u_gravity"),
-      wind: gl.getUniformLocation(program, "u_wind"),
-      texture: gl.getUniformLocation(program, "u_texture"),
+    const windState = {
+      current: 0.0,
+      force: CONFIG.WIND_MIN,
+      target: CONFIG.WIND_MIN,
     };
 
-    gl.uniform1f(uniforms.gravity, CONFIG.GRAVITY);
-    gl.uniform1i(uniforms.texture, 0);
-
-    const buffers = {
-      position: createBuffer("a_position", 4),
-      color: createBuffer("a_color", 4),
-      rotation: createBuffer("a_rotation", 3),
-      speed: createBuffer("a_speed", 3),
-      size: createBuffer("a_size", 1),
-    };
-
-    let winW, winH;
-    let particleCount = 0;
+    function bindCanvas() {
+      canvas = document.getElementById("snow-canvas") as HTMLCanvasElement | null;
+    }
 
     function resize() {
+      if (!canvas) return;
+
       const dpr = devicePixelRatio || 1;
       winW = window.innerWidth;
       winH = window.innerHeight;
@@ -223,27 +237,32 @@
       uploadBuffer(buffers.size, siz);
     }
 
-    window.addEventListener("resize", () => {
+    function handleResize() {
+      if (!isInitialized) return;
       resize();
-    });
-    resize();
+    }
 
-    setupTexture(SNOWFLAKE_TEXTURE);
-
-    const windState = {
-      current: 0.0,
-      force: CONFIG.WIND_MIN,
-      target: CONFIG.WIND_MIN,
-    };
-
-    const startTime = performance.now();
-    let lastTime = startTime;
+    function pause() {
+      isRunning = false;
+      if (frameId) {
+        cancelAnimationFrame(frameId);
+        frameId = 0;
+      }
+      lastTime = 0;
+    }
 
     function tick(now: DOMHighResTimeStamp) {
-      now = performance.now();
-      const elapsed = (now - startTime) / 5000;
+      if (!isRunning) return;
+
+      if (lastTime === 0) {
+        lastTime = now;
+      }
+
       const delta = Math.min(100, now - lastTime);
       lastTime = now;
+      elapsedMs += delta;
+
+      const elapsed = elapsedMs / 5000;
 
       windState.force += (windState.target - windState.force) * CONFIG.WIND_EASE;
       windState.current += windState.force * (delta * 0.2);
@@ -261,9 +280,129 @@
         gl.drawArrays(gl.POINTS, 0, particleCount);
       }
 
-      requestAnimationFrame(tick);
+      frameId = requestAnimationFrame(tick);
     }
 
-    requestAnimationFrame(tick);
+    function ensureRunning() {
+      if (!isInitialized) {
+        scheduleInitialize();
+        return;
+      }
+
+      if (isRunning) return;
+
+      isRunning = true;
+      lastTime = 0;
+      frameId = requestAnimationFrame(tick);
+    }
+
+    function onRouteResume() {
+      bindCanvas();
+      ensureRunning();
+    }
+
+    function initialize() {
+      if (isInitialized || isStarting) return;
+      isStarting = true;
+
+      bindCanvas();
+      if (!canvas) {
+        isStarting = false;
+        return;
+      }
+
+      const context = canvas.getContext("webgl") as WebGLRenderingContext | null;
+      if (!context) {
+        isStarting = false;
+        return;
+      }
+      gl = context;
+
+      const vs = gl.createShader(gl.VERTEX_SHADER) as WebGLShader;
+      gl.shaderSource(vs, vertexShader);
+      gl.compileShader(vs);
+
+      const fs = gl.createShader(gl.FRAGMENT_SHADER) as WebGLShader;
+      gl.shaderSource(fs, fragmentShader);
+      gl.compileShader(fs);
+
+      program = gl.createProgram() as WebGLProgram;
+      gl.attachShader(program, vs);
+      gl.attachShader(program, fs);
+      gl.linkProgram(program);
+      gl.useProgram(program);
+
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+      gl.disable(gl.DEPTH_TEST);
+      gl.enable(gl.CULL_FACE);
+
+      uniforms = {
+        time: gl.getUniformLocation(program, "u_time"),
+        resolution: gl.getUniformLocation(program, "u_resolution"),
+        projection: gl.getUniformLocation(program, "u_projection"),
+        worldSize: gl.getUniformLocation(program, "u_worldSize"),
+        gravity: gl.getUniformLocation(program, "u_gravity"),
+        wind: gl.getUniformLocation(program, "u_wind"),
+        texture: gl.getUniformLocation(program, "u_texture"),
+      };
+
+      gl.uniform1f(uniforms.gravity, CONFIG.GRAVITY);
+      gl.uniform1i(uniforms.texture, 0);
+
+      buffers = {
+        position: createBuffer("a_position", 4) as WebGLBuffer,
+        color: createBuffer("a_color", 4) as WebGLBuffer,
+        rotation: createBuffer("a_rotation", 3) as WebGLBuffer,
+        speed: createBuffer("a_speed", 3) as WebGLBuffer,
+        size: createBuffer("a_size", 1) as WebGLBuffer,
+      };
+
+      resize();
+      setupTexture(SNOWFLAKE_TEXTURE);
+
+      elapsedMs = 0;
+      lastTime = 0;
+
+      isInitialized = true;
+      isStarting = false;
+
+      window.addEventListener("resize", handleResize);
+      ensureRunning();
+    }
+
+    function scheduleInitialize() {
+      if (isInitialized || isStarting || initScheduled) return;
+      initScheduled = true;
+
+      const runInit = () => {
+        initScheduled = false;
+        initialize();
+      };
+
+      const idleWindow = window as Window & {
+        requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+      };
+
+      if (typeof idleWindow.requestIdleCallback === "function") {
+        idleWindow.requestIdleCallback(runInit, { timeout: 1200 });
+        return;
+      }
+
+      setTimeout(() => {
+        requestAnimationFrame(runInit);
+      }, 0);
+    }
+
+    document.addEventListener("astro:before-swap", pause);
+    document.addEventListener("astro:after-swap", onRouteResume);
+    document.addEventListener("astro:page-load", onRouteResume);
+
+    globalWindow.__snowBackgroundState = {
+      rebindCanvas: bindCanvas,
+      ensureRunning,
+    };
+
+    scheduleInitialize();
   })();
 </script>
