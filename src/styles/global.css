@@ -5,39 +5,39 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @font-face {
-    font-family: FiraCode;
-    font-style: normal;
-    font-weight: 200 500;
-    font-display: swap;
-    src: url("/fonts/firacode-regular.woff2") format("woff2");
+  font-family: FiraCode;
+  font-style: normal;
+  font-weight: 200 500;
+  font-display: swap;
+  src: url("/fonts/firacode-regular.woff2") format("woff2");
 }
 
 @theme {
-    --font-mono: "FiraCode", "monospace";
+  --font-mono: "FiraCode", "monospace";
 
-    --color-bg: #f6f1e7;
-    --color-surface: #eee8d8;
-    --color-text: #1c1410;
-    --color-text-secondary: #6a5b50;
-    --color-border: rgba(28, 20, 16, 0.1);
-    --color-accent: #c0392b;
-    --color-accent-hover: #e8a090;
-    --color-accent-soft: #faf0ee;
-    --color-aux: #3a7a8c;
+  --color-bg: #f6f1e7;
+  --color-surface: #eee8d8;
+  --color-text: #1c1410;
+  --color-text-secondary: #6a5b50;
+  --color-border: rgba(28, 20, 16, 0.1);
+  --color-accent: #c0392b;
+  --color-accent-hover: #e8a090;
+  --color-accent-soft: #faf0ee;
+  --color-aux: #3a7a8c;
 }
 
 .dark {
-    --color-bg: #110e0c;
-    --color-surface: #1b1714;
-    --color-text: #eae0d2;
-    --color-text-secondary: #8a7a6e;
-    --color-border: rgba(234, 224, 210, 0.08);
-    --color-accent: #d9564a;
-    --color-accent-hover: #e8a090;
-    --color-accent-soft: rgba(192, 57, 43, 0.15);
-    --color-aux: #5ba8b8;
+  --color-bg: #110e0c;
+  --color-surface: #1b1714;
+  --color-text: #eae0d2;
+  --color-text-secondary: #8a7a6e;
+  --color-border: rgba(234, 224, 210, 0.08);
+  --color-accent: #d9564a;
+  --color-accent-hover: #e8a090;
+  --color-accent-soft: rgba(192, 57, 43, 0.15);
+  --color-aux: #5ba8b8;
 }
 
 * {
-    font-family: "STSong", "Songti SC", "Noto Serif CJK SC", "Source Han Serif SC", serif;
+  font-family: "STSong", "Songti SC", "Noto Serif CJK SC", "Source Han Serif SC", serif;
 }

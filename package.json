@@ -1,36 +1,36 @@
 {
-    "name": "blog",
-    "type": "module",
-    "version": "0.0.1",
-    "scripts": {
-        "dev": "astro dev",
-        "build": "astro check && astro build",
-        "preview": "astro preview",
-        "add": "astro add",
-        "astro": "astro"
-    },
-    "dependencies": {
-        "@astrojs/check": "^0.9.8",
-        "@astrojs/mdx": "^5.0.3",
-        "@astrojs/rss": "^4.0.18",
-        "@astrojs/sitemap": "^3.7.2",
-        "@tailwindcss/vite": "^4.2.2",
-        "astro": "^6.1.5",
-        "astro-expressive-code": "^0.41.7",
-        "lucide": "^1.8.0",
-        "tailwindcss": "^4.2.2",
-        "typescript": "^5.9.3"
-    },
-    "devDependencies": {
-        "@biomejs/biome": "2.4.12",
-        "@tailwindcss/typography": "^0.5.19",
-        "tailwind-scrollbar": "^4.0.2"
-    },
-    "pnpm": {
-        "onlyBuiltDependencies": [
-            "@tailwindcss/oxide",
-            "esbuild",
-            "sharp"
-        ]
-    }
+  "name": "blog",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "add": "astro add",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.8",
+    "@astrojs/mdx": "^5.0.3",
+    "@astrojs/rss": "^4.0.18",
+    "@astrojs/sitemap": "^3.7.2",
+    "@tailwindcss/vite": "^4.2.2",
+    "astro": "^6.1.5",
+    "astro-expressive-code": "^0.41.7",
+    "lucide": "^1.8.0",
+    "tailwindcss": "^4.2.2",
+    "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.4.12",
+    "@tailwindcss/typography": "^0.5.19",
+    "tailwind-scrollbar": "^4.0.2"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@tailwindcss/oxide",
+      "esbuild",
+      "sharp"
+    ]
+  }
 }
