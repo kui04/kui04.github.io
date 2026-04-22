@@ -17,20 +17,20 @@
 }
 
 :root {
-  --raw-paper-50: #f9f5ee;
-  --raw-paper-100: #f6f1e7;
-  --raw-paper-200: #eee8d8;
-  --raw-paper-300: #e0d8c6;
-  --raw-paper-400: #c8bfac;
+  --raw-paper-50: #f2f5f7;
+  --raw-paper-100: #e9edf0;
+  --raw-paper-200: #dde3e8;
+  --raw-paper-300: #ced6dc;
+  --raw-paper-400: #b9c3ca;
 
-  --raw-ink-50: #eae0d2;
-  --raw-ink-100: #c8baa8;
-  --raw-ink-200: #a8978a;
-  --raw-ink-300: #8a7a6e;
-  --raw-ink-400: #6a5b50;
-  --raw-ink-500: #4a3e36;
-  --raw-ink-600: #2e241c;
-  --raw-ink-700: #1c1410;
+  --raw-ink-50: #d4d9de;
+  --raw-ink-100: #b1bbc3;
+  --raw-ink-200: #8e9aa4;
+  --raw-ink-300: #6c7a86;
+  --raw-ink-400: #4b5b68;
+  --raw-ink-500: #2e3e4b;
+  --raw-ink-600: #192531;
+  --raw-ink-700: #0c141c;
 
   --raw-zhu-100: #f5ceca;
   --raw-zhu-200: #e89890;
@@ -39,29 +39,29 @@
   --raw-zhu-500: #9e2a1e;
   --raw-zhu-600: #7a1f15;
 
-  --raw-qing-100: #c8e4ea;
-  --raw-qing-200: #8ec4cf;
-  --raw-qing-300: #5aa4b4;
-  --raw-qing-400: #3a7a8c;
-  --raw-qing-500: #2a5c6a;
-  --raw-qing-600: #1c3f4a;
+  --raw-qing-100: #cde3e8;
+  --raw-qing-200: #9bc1cc;
+  --raw-qing-300: #6ea2b2;
+  --raw-qing-400: #4a8294;
+  --raw-qing-500: #366272;
+  --raw-qing-600: #244552;
 }
 
 .dark {
-  --raw-paper-50: #1f1a16;
-  --raw-paper-100: #110e0c;
-  --raw-paper-200: #1b1714;
-  --raw-paper-300: #252018;
-  --raw-paper-400: #332a22;
+  --raw-paper-50: #1a1f24;
+  --raw-paper-100: #13181d;
+  --raw-paper-200: #1c2329;
+  --raw-paper-300: #252d35;
+  --raw-paper-400: #323c46;
 
-  --raw-ink-50: #3a3028;
-  --raw-ink-100: #5a4e46;
-  --raw-ink-200: #8a7a6e;
-  --raw-ink-300: #a8978a;
-  --raw-ink-400: #c8bfac;
-  --raw-ink-500: #e0d8c6;
-  --raw-ink-600: #eae0d2;
-  --raw-ink-700: #f4ede2;
+  --raw-ink-50: #38434d;
+  --raw-ink-100: #55616b;
+  --raw-ink-200: #7c8a94;
+  --raw-ink-300: #a1aeb8;
+  --raw-ink-400: #c3ced6;
+  --raw-ink-500: #dae2e8;
+  --raw-ink-600: #e9edf0;
+  --raw-ink-700: #f2f5f7;
 
   --raw-zhu-100: rgba(192, 57, 43, 0.15);
   --raw-zhu-200: rgba(192, 57, 43, 0.3);
