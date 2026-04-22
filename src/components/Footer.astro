@@ -4,7 +4,7 @@ import { AUTHOR_NAME } from "@/constants";
 const year = new Date().getFullYear();
 ---
 
-<footer class="flex items-center justify-between gap-2 py-4 px-4 sm:px-6 lg:px-8 text-xs text-text-secondary">
+<footer class="flex items-center justify-between gap-2 py-4 px-4 sm:px-6 lg:px-8 text-xs text-text-muted">
   <p>
     © {year}
     {AUTHOR_NAME} · Built with Astro
@@ -14,10 +14,10 @@ const year = new Date().getFullYear();
       href="https://github.com/kui04"
       target="_blank"
       rel="noopener noreferrer"
-      class="transition-colors hover:text-accent"
+      class="transition-colors hover:text-zhu"
     >
       GitHub
     </a>
-    <a href="/rss.xml" class="transition-colors hover:text-text">RSS</a>
+    <a href="/rss.xml" class="transition-colors hover:text-text-base">RSS</a>
   </div>
 </footer>

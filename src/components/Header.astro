@@ -16,7 +16,7 @@ const isExternal = (href: string) => href.startsWith("http");
   <a
     href="/"
     aria-label={SITE_TITLE}
-    class="text-lg inline-flex border-s-4 border-accent text-accent px-4 transition-all duration-200"
+    class="text-lg inline-flex border-s-4 border-zhu text-zhu px-4 transition-all duration-200"
   >
     {SITE_TITLE}
   </a>
@@ -30,8 +30,8 @@ const isExternal = (href: string) => href.startsWith("http");
             rel={isExternal(href) ? "noopener noreferrer" : undefined}
             class={`transition-colors ${
               isActive(href)
-                ? "text-accent underline underline-offset-8"
-                : "text-text-secondary hover:text-accent-hover"
+                ? "text-zhu underline underline-offset-8"
+                : "text-text-muted hover:text-zhu-muted"
             }`}
           >
             {title}

@@ -13,31 +13,93 @@
 }
 
 @theme {
-  --font-mono: "FiraCode", "monospace";
+  --color-*: initial;
+}
 
-  --color-bg: #f6f1e7;
-  --color-surface: #eee8d8;
-  --color-text: #1c1410;
-  --color-text-secondary: #6a5b50;
-  --color-border: rgba(28, 20, 16, 0.1);
-  --color-accent: #c0392b;
-  --color-accent-hover: #e8a090;
-  --color-accent-soft: #faf0ee;
-  --color-aux: #3a7a8c;
+:root {
+  --raw-paper-50: #f9f5ee;
+  --raw-paper-100: #f6f1e7;
+  --raw-paper-200: #eee8d8;
+  --raw-paper-300: #e0d8c6;
+  --raw-paper-400: #c8bfac;
+
+  --raw-ink-50: #eae0d2;
+  --raw-ink-100: #c8baa8;
+  --raw-ink-200: #a8978a;
+  --raw-ink-300: #8a7a6e;
+  --raw-ink-400: #6a5b50;
+  --raw-ink-500: #4a3e36;
+  --raw-ink-600: #2e241c;
+  --raw-ink-700: #1c1410;
+
+  --raw-zhu-100: #f5ceca;
+  --raw-zhu-200: #e89890;
+  --raw-zhu-300: #d4635a;
+  --raw-zhu-400: #c0392b;
+  --raw-zhu-500: #9e2a1e;
+  --raw-zhu-600: #7a1f15;
+
+  --raw-qing-100: #c8e4ea;
+  --raw-qing-200: #8ec4cf;
+  --raw-qing-300: #5aa4b4;
+  --raw-qing-400: #3a7a8c;
+  --raw-qing-500: #2a5c6a;
+  --raw-qing-600: #1c3f4a;
 }
 
 .dark {
-  --color-bg: #110e0c;
-  --color-surface: #1b1714;
-  --color-text: #eae0d2;
-  --color-text-secondary: #8a7a6e;
-  --color-border: rgba(234, 224, 210, 0.08);
-  --color-accent: #d9564a;
-  --color-accent-hover: #e8a090;
-  --color-accent-soft: rgba(192, 57, 43, 0.15);
-  --color-aux: #5ba8b8;
+  --raw-paper-50: #1f1a16;
+  --raw-paper-100: #110e0c;
+  --raw-paper-200: #1b1714;
+  --raw-paper-300: #252018;
+  --raw-paper-400: #332a22;
+
+  --raw-ink-50: #3a3028;
+  --raw-ink-100: #5a4e46;
+  --raw-ink-200: #8a7a6e;
+  --raw-ink-300: #a8978a;
+  --raw-ink-400: #c8bfac;
+  --raw-ink-500: #e0d8c6;
+  --raw-ink-600: #eae0d2;
+  --raw-ink-700: #f4ede2;
+
+  --raw-zhu-100: rgba(192, 57, 43, 0.15);
+  --raw-zhu-200: rgba(192, 57, 43, 0.3);
+  --raw-zhu-300: #c94a3a;
+  --raw-zhu-400: #d9564a;
+  --raw-zhu-500: #e8756a;
+  --raw-zhu-600: #f0a09a;
+
+  --raw-qing-100: rgba(58, 122, 140, 0.15);
+  --raw-qing-200: rgba(58, 122, 140, 0.3);
+  --raw-qing-300: #4a94a8;
+  --raw-qing-400: #5ba8b8;
+  --raw-qing-500: #7abfcc;
+  --raw-qing-600: #a8d8e0;
 }
 
-* {
-  font-family: "STSong", "Songti SC", "Noto Serif CJK SC", "Source Han Serif SC", serif;
+@theme inline {
+  --color-bg: var(--raw-paper-100);
+  --color-surface: var(--raw-paper-200);
+  --color-surface-2: var(--raw-paper-300);
+
+  --color-text-base: var(--raw-ink-700);
+  --color-text-muted: var(--raw-ink-400);
+  --color-text-faint: var(--raw-ink-200);
+
+  --color-border: var(--raw-paper-400);
+  --color-border-2: var(--raw-paper-300);
+
+  --color-zhu: var(--raw-zhu-400);
+  --color-zhu-muted: var(--raw-zhu-200);
+  --color-zhu-faint: var(--raw-zhu-100);
+  --color-zhu-deep: var(--raw-zhu-500);
+
+  --color-qing: var(--raw-qing-400);
+  --color-qing-muted: var(--raw-qing-200);
+  --color-qing-faint: var(--raw-qing-100);
+
+  --font-serif: "LXGW WenKai", "Noto Serif SC", "STSong", Georgia, serif;
+  --font-sans: "Noto Sans SC", "PingFang SC", system-ui, sans-serif;
+  --font-mono: "Fira Code", "JetBrains Mono", monospace;
 }

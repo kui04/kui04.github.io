@@ -22,16 +22,17 @@ const uniqueTags = Array.from(new Set(tags));
       uniqueTags.map((tag: string) => (
         <label
           for={`checkbox-${tag}`}
-          class="inline-flex cursor-pointer items-center gap-2 border border-border px-2 py-1 text-sm text-text-secondary transition-colors hover:border-accent hover:text-accent"
+          class="inline-flex cursor-pointer items-center gap-2 border border-border px-2 py-1 text-sm text-text-muted 
+          transition-colors hover:border-zhu hover:text-zhu has-checked:border-zhu has-checked:text-zhu"
         >
           <input id={`checkbox-${tag}`} type="checkbox" value={tag} class="peer sr-only" />
-          <span class="h-1.5 w-1.5 rounded-full bg-border transition-colors peer-checked:bg-accent" />
+          <span class="h-1.5 w-1.5 rounded-full bg-border transition-colors peer-checked:bg-zhu" />
           <span>#{tag.toLocaleUpperCase()}</span>
         </label>
       ))
     }
   </div>
-  <div id="blogContainer" class="grid grid-cols-1 divide-y divide-dashed divide-accent/16">
+  <div id="blogContainer" class="grid grid-cols-1 divide-y divide-dashed divide-zhu-faint">
     {blogs.map((blog) => <BlogCard blog={blog} />)}
   </div>
 </PageLayout>
