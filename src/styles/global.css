@@ -102,17 +102,4 @@
   --font-serif: "LXGW WenKai", "Noto Serif SC", "STSong", Georgia, serif;
   --font-sans: "Noto Sans SC", "PingFang SC", system-ui, sans-serif;
   --font-mono: "Fira Code", "JetBrains Mono", monospace;
-
-  --animate-in-bloom: in-bloom 1.8s ease-in forwards;
-
-  @keyframes in-bloom {
-    0% {
-      opacity: 0;
-      transform: translateY(0.5rem);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
 }
