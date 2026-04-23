@@ -1,192 +1,55 @@
-<!-- Shader Reference: https://github.com/bsehovac/shader-program/ -->
 <canvas
-  id="snow-canvas"
+  id="webgl-snow-fall"
   class="fixed top-0 left-0 -z-50 h-full w-full pointer-events-none"
   transition:persist="snow-background"></canvas>
 
 <script>
+  import REGL from "regl";
+
   (() => {
     "use strict";
+    const canvas = document.getElementById("webgl-snow-fall") as HTMLCanvasElement;
 
-    const enum State {
-      Idle,
-      Starting,
-      Ready,
+    function resizeCanvas() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const rect = canvas.getBoundingClientRect();
+
+      const width = Math.round(rect.width * dpr);
+      const height = Math.round(rect.height * dpr);
+
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+      }
     }
 
-    function createBuffer(name: string, size: number) {
-      const loc = gl.getAttribLocation(program, name);
-      const buf = gl.createBuffer()!;
-      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-      gl.enableVertexAttribArray(loc);
-      gl.vertexAttribPointer(loc, size, gl.FLOAT, false, 0, 0);
-      return buf;
-    }
-
-    function uploadBuffer(buffer: WebGLBuffer, data: Float32Array) {
-      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-      gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
-      gl.bindBuffer(gl.ARRAY_BUFFER, null);
-    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
 
     function buildProjection(fovDeg: number, aspect: number, near: number, far: number, camZ: number) {
-      const f = Math.tan(Math.PI * 0.5 - (0.5 * fovDeg * Math.PI) / 180);
+      const fov = Math.tan(Math.PI * 0.5 - (0.5 * fovDeg * Math.PI) / 180);
       const rangeInv = 1.0 / (near - far);
       // prettier-ignore
       return new Float32Array([
-        f/aspect, 0, 0                        , 0   ,
-        0       , f, 0                        , 0   ,
-        0       , 0, (near + far)*rangeInv    , -1  ,
-        0       , 0, near*far*rangeInv*2+camZ , camZ ]);
+        fov / aspect, 0  , 0                               , 0   ,
+        0           , fov, 0                               , 0   ,
+        0           , 0  , (near + far) * rangeInv         , -1  ,
+        0           , 0  , near * far * rangeInv * 2 + camZ, camZ,
+      ]);
     }
 
-    function setupTexture(src: string) {
-      snowTexture = gl.createTexture();
-      gl.bindTexture(gl.TEXTURE_2D, snowTexture);
-      // prettier-ignore
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([255, 255, 255, 0]));
-      const img = new Image();
-      img.onload = () => {
-        gl.bindTexture(gl.TEXTURE_2D, snowTexture);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-      };
-      img.src = src;
-    }
+    function initParticles(count: number, halfW: number, halfH: number, halfD: number) {
+      const pos = new Float32Array(count * 4);
+      const col = new Float32Array(count * 4);
+      const rot = new Float32Array(count * 3);
+      const spd = new Float32Array(count * 3);
+      const siz = new Float32Array(count);
 
-    const SNOWFLAKE_TEXTURE = "/images/snow-flake.png";
-    const CONFIG = {
-      COUNT: 1024,
-      GRAVITY: 100,
-      WIND_MIN: 0.1,
-      WIND_MAX: 0.31,
-      WIND_EASE: 0.005,
-      FOV: 60,
-      CAM_Z: 100,
-      MAX_DPR: 2,
-      WIND_WRAP: 10000,
-    };
+      const zRef = 64;
+      const minPx = 8;
+      const maxPx = 24;
 
-    const globalWindow = window as Window & {
-      __snowBackgroundState?: {
-        rebindCanvas: () => void;
-        ensureRunning: () => void;
-      };
-    };
-
-    const existingState = globalWindow.__snowBackgroundState;
-    if (existingState) {
-      existingState.rebindCanvas();
-      existingState.ensureRunning();
-      return;
-    }
-
-    let canvas = document.getElementById("snow-canvas") as HTMLCanvasElement | null;
-    let gl: WebGLRenderingContext;
-    let program: WebGLProgram;
-    let snowTexture: WebGLTexture | null = null;
-    let uniforms: {
-      time: WebGLUniformLocation | null;
-      resolution: WebGLUniformLocation | null;
-      projection: WebGLUniformLocation | null;
-      worldSize: WebGLUniformLocation | null;
-      gravity: WebGLUniformLocation | null;
-      wind: WebGLUniformLocation | null;
-      texture: WebGLUniformLocation | null;
-    };
-    let buffers: {
-      position: WebGLBuffer;
-      color: WebGLBuffer;
-      rotation: WebGLBuffer;
-      speed: WebGLBuffer;
-      size: WebGLBuffer;
-    };
-
-    let winW = 0;
-    let winH = 0;
-    let particleCount = 0;
-    let frameId = 0;
-    let isRunning = false;
-    let initState: State = State.Idle;
-    let initScheduled = false;
-    let baseTime = 0;
-    let pausedElapsed = 0;
-    let lastTime = 0;
-
-    const vertexShader = `
-      precision highp float;
-      attribute vec4 a_position;
-      attribute vec4 a_color;
-      attribute vec3 a_rotation;
-      attribute vec3 a_speed;
-      attribute float a_size;
-
-      uniform float u_time;
-      uniform vec2 u_resolution;
-      uniform mat4 u_projection;
-      uniform vec3 u_worldSize;
-      uniform float u_gravity;
-      uniform float u_wind;
-
-      varying vec4 v_color;
-      varying float v_rotation;
-
-      void main() {
-        v_color = a_color;
-        v_rotation = a_rotation.x + u_time * a_rotation.y;
-
-        vec3 pos = a_position.xyz;
-
-        pos.x = mod(pos.x + u_time + u_wind * a_speed.x, u_worldSize.x * 2.0) - u_worldSize.x;
-        pos.y = mod(pos.y - u_time * a_speed.y * u_gravity, u_worldSize.y * 2.0) - u_worldSize.y;
-        pos.x += sin(u_time * a_speed.z) * a_rotation.z;
-        pos.z += cos(u_time * a_speed.z) * a_rotation.z;
-
-        gl_Position = u_projection * vec4(pos.xyz, a_position.w);
-        gl_PointSize = (a_size / gl_Position.w) * 40.0;
-      }
-    `;
-
-    const fragmentShader = `
-      precision highp float;
-      uniform sampler2D u_texture;
-      varying vec4 v_color;
-      varying float v_rotation;
-
-      void main() {
-        vec2 coord = gl_PointCoord - 0.5;
-        float c = cos(v_rotation);
-        float s = sin(v_rotation);
-        vec2 rotated = vec2(
-          c * coord.x + s * coord.y + 0.5,
-          c * coord.y - s * coord.x + 0.5
-        );
-        vec4 flake = texture2D(u_texture, rotated);
-        gl_FragColor = vec4(flake.rgb, flake.a * v_color.a);
-      }
-    `;
-
-    const windState = {
-      current: 0.0,
-      force: CONFIG.WIND_MIN,
-      target: CONFIG.WIND_MIN,
-    };
-
-    function bindCanvas() {
-      canvas = document.getElementById("snow-canvas") as HTMLCanvasElement | null;
-    }
-
-    function initParticles(halfW: number, halfH: number, halfD: number, n: number, dpr: number) {
-      const pos = new Float32Array(n * 4);
-      const col = new Float32Array(n * 4);
-      const rot = new Float32Array(n * 3);
-      const spd = new Float32Array(n * 3);
-      const siz = new Float32Array(n);
-
-      for (let i = 0; i < n; i++) {
+      for (let i = 0; i < count; i++) {
         const i4 = i * 4;
         const i3 = i * 3;
 
@@ -208,226 +71,218 @@
         col[i4 + 2] = 1.0;
         col[i4 + 3] = 0.15 + Math.random() * 0.3;
 
-        siz[i] = 5.0 * Math.random() * 5.0 * ((winH * dpr) / 1000);
+        siz[i] = (minPx + Math.random() * (maxPx - minPx)) * zRef;
       }
 
-      uploadBuffer(buffers.position, pos);
-      uploadBuffer(buffers.color, col);
-      uploadBuffer(buffers.rotation, rot);
-      uploadBuffer(buffers.speed, spd);
-      uploadBuffer(buffers.size, siz);
-    }
-
-    let lastParticleCount = 0;
-
-    function resize() {
-      if (!canvas) return;
-
-      const dpr = Math.min(devicePixelRatio || 1, CONFIG.MAX_DPR);
-      winW = window.innerWidth;
-      winH = window.innerHeight;
-      canvas.width = winW * dpr;
-      canvas.height = winH * dpr;
-      canvas.style.width = winW + "px";
-      canvas.style.height = winH + "px";
-
-      gl.viewport(0, 0, canvas.width, canvas.height);
-      gl.clearColor(0.0, 0.0, 0.0, 0.0);
-
-      const aspect = winW / winH;
-      gl.uniformMatrix4fv(
-        uniforms.projection,
-        false,
-        buildProjection(CONFIG.FOV, aspect, 1, 10000, CONFIG.CAM_Z),
-      );
-      gl.uniform2f(uniforms.resolution, winW, winH);
-
-      const halfH = 110;
-      const halfW = aspect * halfH;
-      const halfD = 80;
-      gl.uniform3f(uniforms.worldSize, halfW, halfH, halfD);
-
-      const newCount = Math.round(aspect * CONFIG.COUNT);
-
-      if (newCount !== lastParticleCount) {
-        particleCount = newCount;
-        lastParticleCount = newCount;
-        initParticles(halfW, halfH, halfD, newCount, dpr);
-      }
-    }
-
-    function handleResize() {
-      if (initState !== State.Ready) return;
-      resize();
-    }
-
-    function pause() {
-      if (!isRunning) return;
-      isRunning = false;
-      pausedElapsed += lastTime ? performance.now() - baseTime : 0;
-      if (frameId) {
-        cancelAnimationFrame(frameId);
-        frameId = 0;
-      }
-      lastTime = 0;
-    }
-
-    function tick(now: DOMHighResTimeStamp) {
-      if (!isRunning) return;
-
-      if (lastTime === 0) {
-        baseTime = now;
-        lastTime = now;
-      }
-
-      const delta = Math.min(100, now - lastTime);
-      lastTime = now;
-
-      const totalMs = pausedElapsed + (now - baseTime);
-      const elapsed = totalMs / 5000;
-
-      windState.force += (windState.target - windState.force) * CONFIG.WIND_EASE;
-      windState.current += windState.force * (delta * 0.2);
-      windState.current = windState.current % CONFIG.WIND_WRAP;
-
-      if (Math.random() > 0.995) {
-        const strength = CONFIG.WIND_MIN + Math.random() * (CONFIG.WIND_MAX - CONFIG.WIND_MIN);
-        windState.target = strength * (Math.random() > 0.5 ? 1 : -1);
-      }
-
-      gl.uniform1f(uniforms.time, elapsed);
-      gl.uniform1f(uniforms.wind, windState.current);
-
-      if (particleCount > 0) {
-        gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, snowTexture);
-        gl.drawArrays(gl.POINTS, 0, particleCount);
-      }
-
-      frameId = requestAnimationFrame(tick);
-    }
-
-    function ensureRunning() {
-      if (initState !== State.Ready) {
-        scheduleInitialize();
-        return;
-      }
-      if (isRunning) return;
-
-      isRunning = true;
-      lastTime = 0;
-      frameId = requestAnimationFrame(tick);
-    }
-
-    function onRouteResume() {
-      bindCanvas();
-      ensureRunning();
-    }
-
-    function initialize() {
-      if (initState !== State.Idle) return;
-      initState = State.Starting;
-
-      bindCanvas();
-      if (!canvas) {
-        initState = State.Idle;
-        return;
-      }
-
-      const context = canvas.getContext("webgl") as WebGLRenderingContext | null;
-      if (!context) {
-        initState = State.Idle;
-        return;
-      }
-      gl = context;
-
-      const vs = gl.createShader(gl.VERTEX_SHADER) as WebGLShader;
-      gl.shaderSource(vs, vertexShader);
-      gl.compileShader(vs);
-
-      const fs = gl.createShader(gl.FRAGMENT_SHADER) as WebGLShader;
-      gl.shaderSource(fs, fragmentShader);
-      gl.compileShader(fs);
-
-      program = gl.createProgram() as WebGLProgram;
-      gl.attachShader(program, vs);
-      gl.attachShader(program, fs);
-      gl.linkProgram(program);
-      gl.useProgram(program);
-
-      gl.enable(gl.BLEND);
-      gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
-      gl.disable(gl.DEPTH_TEST);
-      gl.enable(gl.CULL_FACE);
-
-      uniforms = {
-        time: gl.getUniformLocation(program, "u_time"),
-        resolution: gl.getUniformLocation(program, "u_resolution"),
-        projection: gl.getUniformLocation(program, "u_projection"),
-        worldSize: gl.getUniformLocation(program, "u_worldSize"),
-        gravity: gl.getUniformLocation(program, "u_gravity"),
-        wind: gl.getUniformLocation(program, "u_wind"),
-        texture: gl.getUniformLocation(program, "u_texture"),
+      return {
+        position: pos,
+        color: col,
+        rotation: rot,
+        speed: spd,
+        size: siz,
       };
-
-      gl.uniform1f(uniforms.gravity, CONFIG.GRAVITY);
-      gl.uniform1i(uniforms.texture, 0);
-
-      buffers = {
-        position: createBuffer("a_position", 4) as WebGLBuffer,
-        color: createBuffer("a_color", 4) as WebGLBuffer,
-        rotation: createBuffer("a_rotation", 3) as WebGLBuffer,
-        speed: createBuffer("a_speed", 3) as WebGLBuffer,
-        size: createBuffer("a_size", 1) as WebGLBuffer,
-      };
-
-      resize();
-      setupTexture(SNOWFLAKE_TEXTURE);
-
-      pausedElapsed = 0;
-      lastTime = 0;
-      initState = State.Ready;
-
-      window.addEventListener("resize", handleResize);
-
-      document.addEventListener("visibilitychange", () => {
-        document.hidden ? pause() : ensureRunning();
-      });
-
-      ensureRunning();
     }
 
-    function scheduleInitialize() {
-      if (initState !== State.Idle || initScheduled) return;
-      initScheduled = true;
+    const regl = REGL({ canvas });
+    const config = { count: 2048, gravity: 100, fovDeg: 60, camZ: 100 };
+    const aspect = window.innerWidth / window.innerHeight;
+    const size = { halfH: 110, halfW: aspect * 110, halfD: 80 };
 
-      const runInit = () => {
-        initScheduled = false;
-        initialize();
+    const particleCount = Math.round(aspect * config.count);
+    const particles = initParticles(particleCount, size.halfW, size.halfH, size.halfD);
+
+    const snowTexture = regl.texture({ data: new Uint8Array([255, 255, 255, 0]), width: 1, height: 1 });
+    const img = new Image();
+    img.onload = () => snowTexture({ data: img, width: img.width, height: img.height });
+    img.src = "/images/snow-flake.png";
+
+    const windSim = (() => {
+      let angle = 0.15;
+      let angleGoal = 0.15;
+
+      let speed = 1.0;
+      let speedGoal = 1.0;
+
+      let phase = "calm";
+      let phaseT = 0;
+      let coolDown = 3 + Math.random() * 5;
+      // prettier-ignore
+      let driftX = 0, driftY = 0, driftZ = 0;
+
+      return {
+        get drift() {
+          return [driftX, driftY, driftZ];
+        },
+
+        update(dt: number) {
+          angle += (angleGoal - angle) * dt * 0.06;
+          if (Math.abs(angleGoal - angle) < 0.06) {
+            angleGoal = (Math.random() - 0.5) * Math.PI * 1.4;
+          }
+
+          coolDown -= dt;
+          phaseT -= dt;
+
+          if (phase === "calm" && coolDown <= 0) {
+            phase = "building";
+            speedGoal = 4 + Math.random() * 11;
+            phaseT = 0.6 + Math.random() * 1.2;
+            coolDown = 6 + Math.random() * 14;
+          } else if (phase === "building" && phaseT <= 0) {
+            phase = "peak";
+            phaseT = 1.0 + Math.random() * 2.0;
+          } else if (phase === "peak" && phaseT <= 0) {
+            phase = "fading";
+            speedGoal = 0.5 + Math.random() * 1.2;
+            phaseT = 2 + Math.random() * 3;
+          } else if (phase === "fading" && phaseT <= 0) {
+            phase = "calm";
+          }
+
+          const ease = phase === "building" ? 4.5 : 1.2;
+          speed += (speedGoal - speed) * Math.min(dt * ease, 0.6);
+
+          const s = 5.5;
+
+          driftX += Math.sin(angle) * speed * dt * s;
+          driftY += Math.cos(angle * 0.8) * speed * dt * s * 0.15;
+          driftZ += Math.sin(angle * 0.6 + 0.4) * speed * dt * s * 0.12;
+        },
       };
+    })();
 
-      const idleWindow = window as Window & {
-        requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
-      };
+    const drawSnow = regl({
+      vert: `
+        precision highp float;
 
-      if (typeof idleWindow.requestIdleCallback === "function") {
-        idleWindow.requestIdleCallback(runInit, { timeout: 1200 });
-        return;
-      }
+        attribute vec4 a_position;
+        attribute vec4 a_color;
+        attribute vec3 a_rotation;
+        attribute vec3 a_speed;
+        attribute float a_size;
 
-      setTimeout(() => requestAnimationFrame(runInit), 0);
-    }
+        uniform float u_time;
+        uniform vec2 u_resolution;
+        uniform mat4 u_projection;
+        uniform vec3 u_worldSize;
+        uniform float u_gravity;
+        uniform vec3  u_drift;
 
-    document.addEventListener("astro:before-swap", pause);
-    document.addEventListener("astro:after-swap", onRouteResume);
-    document.addEventListener("astro:page-load", onRouteResume);
+        varying vec4 v_color;
+        varying float v_rotation;
 
-    globalWindow.__snowBackgroundState = {
-      rebindCanvas: bindCanvas,
-      ensureRunning,
-    };
+        float hash(vec3 p) {
+          p = fract(p * 0.3183099 + 0.1);
+          p *= 17.0;
+          return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+        }
 
-    scheduleInitialize();
+        float noise(vec3 p) {
+          vec3 i = floor(p);
+          vec3 f = fract(p);
+
+          float a = hash(i);
+          float b = hash(i + vec3(1.0, 0.0, 0.0));
+          float c = hash(i + vec3(0.0, 1.0, 0.0));
+          float d = hash(i + vec3(1.0, 1.0, 0.0));
+          float e = hash(i + vec3(0.0, 0.0, 1.0));
+          float f1 = hash(i + vec3(1.0, 0.0, 1.0));
+          float g = hash(i + vec3(0.0, 1.0, 1.0));
+          float h = hash(i + vec3(1.0, 1.0, 1.0));
+
+          vec3 u = f * f * (3.0 - 2.0 * f);
+
+          return mix(
+            mix(mix(a, b, u.x), mix(c, d, u.x), u.y),
+            mix(mix(e, f1, u.x), mix(g, h, u.x), u.y),
+            u.z
+          );
+        }
+
+        void main() {
+          v_color    = a_color;
+          v_rotation = a_rotation.x + u_time * a_rotation.y;
+
+          vec3 pos = a_position.xyz;
+
+          float w = a_speed.x;
+          pos.x = mod(pos.x + u_drift.x * w, u_worldSize.x * 2.0) - u_worldSize.x;
+          pos.y = mod(pos.y - u_time * a_speed.y * u_gravity + u_drift.y * w, u_worldSize.y * 2.0) - u_worldSize.y;
+          pos.z = mod(pos.z + u_drift.z * w, u_worldSize.z * 2.0);
+
+          float fx = noise(vec3(a_position.xy * 0.08 + u_time * 0.07, 0.3)) - 0.5;
+          float fy = noise(vec3(a_position.yz * 0.08 + u_time * 0.05, 0.7)) - 0.5;
+          pos.x += fx * a_rotation.z * 1.8;
+          pos.y += fy * a_rotation.z * 0.7;
+
+          pos.x += sin(u_time * a_speed.z) * a_rotation.z;
+          pos.z += cos(u_time * a_speed.z) * a_rotation.z;
+
+          gl_Position  = u_projection * vec4(pos, a_position.w);
+          gl_PointSize = a_size / gl_Position.w;
+        }
+      `,
+      frag: `
+        precision highp float;
+
+        uniform sampler2D u_texture;
+        varying vec4 v_color;
+        varying float v_rotation;
+
+        void main() {
+          vec2 coord = gl_PointCoord - 0.5;
+          float c = cos(v_rotation);
+          float s = sin(v_rotation);
+
+          vec2 rotated = vec2(
+            c * coord.x + s * coord.y + 0.5,
+            c * coord.y - s * coord.x + 0.5
+          );
+
+          vec4 flake = texture2D(u_texture, rotated);
+          gl_FragColor = vec4(flake.rgb, flake.a * v_color.a) * 1.75;
+        }
+      `,
+      attributes: {
+        a_position: regl.buffer(particles.position),
+        a_color: regl.buffer(particles.color),
+        a_rotation: regl.buffer(particles.rotation),
+        a_speed: regl.buffer(particles.speed),
+        a_size: regl.buffer(particles.size),
+      },
+      uniforms: {
+        u_time: ({ time }) => time / 5.0,
+        // prettier-ignore
+        u_resolution: ({ drawingBufferWidth, drawingBufferHeight }) => [ drawingBufferWidth, drawingBufferHeight ],
+        // prettier-ignore
+        u_projection: ({ drawingBufferWidth, drawingBufferHeight }) => buildProjection(config.fovDeg, drawingBufferWidth / drawingBufferHeight, 1, 10000, config.camZ),
+        u_worldSize: [size.halfW, size.halfH, size.halfD],
+        u_gravity: config.gravity,
+        u_texture: snowTexture,
+        u_drift: () => windSim.drift,
+      },
+      count: particleCount,
+      primitive: "points",
+      blend: {
+        enable: true,
+        func: {
+          srcRGB: "src alpha",
+          srcAlpha: "one",
+          dstRGB: "one",
+          dstAlpha: "one",
+        },
+      },
+      depth: {
+        enable: false,
+      },
+    });
+
+    let lastTime = 0;
+    regl.frame(({ time }) => {
+      const dt = Math.min(time - lastTime, 0.05);
+      lastTime = time;
+      windSim.update(dt);
+      drawSnow();
+    });
   })();
 </script>
