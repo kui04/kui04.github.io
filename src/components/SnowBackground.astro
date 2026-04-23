@@ -1,7 +1,3 @@
----
-
----
-
 <!-- Shader Reference: https://github.com/bsehovac/shader-program/ -->
 <canvas
   id="snow-canvas"
@@ -12,18 +8,24 @@
   (() => {
     "use strict";
 
+    const enum State {
+      Idle,
+      Starting,
+      Ready,
+    }
+
     function createBuffer(name: string, size: number) {
       const loc = gl.getAttribLocation(program, name);
-      const buf = gl.createBuffer();
+      const buf = gl.createBuffer()!;
       gl.bindBuffer(gl.ARRAY_BUFFER, buf);
       gl.enableVertexAttribArray(loc);
       gl.vertexAttribPointer(loc, size, gl.FLOAT, false, 0, 0);
       return buf;
     }
 
-    function uploadBuffer(buffer: WebGLBuffer, data: number[]) {
+    function uploadBuffer(buffer: WebGLBuffer, data: Float32Array) {
       gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);
+      gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
       gl.bindBuffer(gl.ARRAY_BUFFER, null);
     }
 
@@ -31,17 +33,21 @@
       const f = Math.tan(Math.PI * 0.5 - (0.5 * fovDeg * Math.PI) / 180);
       const rangeInv = 1.0 / (near - far);
       // prettier-ignore
-      return new Float32Array([ f / aspect, 0, 0, 0, 0, f, 0, 0, 0, 0, (near + far) * rangeInv, -1, 0, 0, near * far * rangeInv * 2 + camZ, camZ ]);
+      return new Float32Array([
+        f/aspect, 0, 0                        , 0   ,
+        0       , f, 0                        , 0   ,
+        0       , 0, (near + far)*rangeInv    , -1  ,
+        0       , 0, near*far*rangeInv*2+camZ , camZ ]);
     }
 
     function setupTexture(src: string) {
-      const tex = gl.createTexture();
-      gl.bindTexture(gl.TEXTURE_2D, tex);
+      snowTexture = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, snowTexture);
       // prettier-ignore
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([255, 255, 255, 0]));
       const img = new Image();
       img.onload = () => {
-        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.bindTexture(gl.TEXTURE_2D, snowTexture);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
@@ -53,13 +59,15 @@
 
     const SNOWFLAKE_TEXTURE = "/images/snow-flake.png";
     const CONFIG = {
-      COUNT: 4000,
+      COUNT: 1024,
       GRAVITY: 100,
       WIND_MIN: 0.1,
-      WIND_MAX: 0.25,
+      WIND_MAX: 0.31,
       WIND_EASE: 0.005,
       FOV: 60,
       CAM_Z: 100,
+      MAX_DPR: 2,
+      WIND_WRAP: 10000,
     };
 
     const globalWindow = window as Window & {
@@ -79,6 +87,7 @@
     let canvas = document.getElementById("snow-canvas") as HTMLCanvasElement | null;
     let gl: WebGLRenderingContext;
     let program: WebGLProgram;
+    let snowTexture: WebGLTexture | null = null;
     let uniforms: {
       time: WebGLUniformLocation | null;
       resolution: WebGLUniformLocation | null;
@@ -101,10 +110,10 @@
     let particleCount = 0;
     let frameId = 0;
     let isRunning = false;
-    let isInitialized = false;
-    let isStarting = false;
+    let initState: State = State.Idle;
     let initScheduled = false;
-    let elapsedMs = 0;
+    let baseTime = 0;
+    let pausedElapsed = 0;
     let lastTime = 0;
 
     const vertexShader = `
@@ -138,8 +147,9 @@
 
         gl_Position = u_projection * vec4(pos.xyz, a_position.w);
         gl_PointSize = (a_size / gl_Position.w) * 40.0;
-      }  
+      }
     `;
+
     const fragmentShader = `
       precision highp float;
       uniform sampler2D u_texture;
@@ -169,48 +179,19 @@
       canvas = document.getElementById("snow-canvas") as HTMLCanvasElement | null;
     }
 
-    function resize() {
-      if (!canvas) return;
-
-      const dpr = devicePixelRatio || 1;
-      winW = window.innerWidth;
-      winH = window.innerHeight;
-      canvas.width = winW * dpr;
-      canvas.height = winH * dpr;
-      canvas.style.width = winW + "px";
-      canvas.style.height = winH + "px";
-
-      gl.viewport(0, 0, canvas.width, canvas.height);
-      gl.clearColor(0.0, 0.0, 0.0, 0.0);
-
-      const aspect = winW / winH;
-      gl.uniformMatrix4fv(
-        uniforms.projection,
-        false,
-        buildProjection(CONFIG.FOV, aspect, 1, 10000, CONFIG.CAM_Z),
-      );
-      gl.uniform2f(uniforms.resolution, winW, winH);
-
-      const halfH = 110;
-      const halfW = aspect * halfH;
-      const halfD = 80;
-      gl.uniform3f(uniforms.worldSize, halfW, halfH, halfD);
-
-      particleCount = Math.round(aspect * CONFIG.COUNT);
-      const n = particleCount;
-
-      const pos = new Array(n * 4);
-      const col = new Array(n * 4);
-      const rot = new Array(n * 3);
-      const spd = new Array(n * 3);
-      const siz = new Array(n);
+    function initParticles(halfW: number, halfH: number, halfD: number, n: number, dpr: number) {
+      const pos = new Float32Array(n * 4);
+      const col = new Float32Array(n * 4);
+      const rot = new Float32Array(n * 3);
+      const spd = new Float32Array(n * 3);
+      const siz = new Float32Array(n);
 
       for (let i = 0; i < n; i++) {
         const i4 = i * 4;
         const i3 = i * 3;
 
         pos[i4] = -halfW + Math.random() * halfW * 2;
-        pos[i4 + 1] = halfH * 1.5 + Math.random() * halfH * 0.5;
+        pos[i4 + 1] = -halfH + Math.random() * halfH * 2;
         pos[i4 + 2] = Math.random() * halfD * 2;
         pos[i4 + 3] = 1.0;
 
@@ -237,13 +218,53 @@
       uploadBuffer(buffers.size, siz);
     }
 
+    let lastParticleCount = 0;
+
+    function resize() {
+      if (!canvas) return;
+
+      const dpr = Math.min(devicePixelRatio || 1, CONFIG.MAX_DPR);
+      winW = window.innerWidth;
+      winH = window.innerHeight;
+      canvas.width = winW * dpr;
+      canvas.height = winH * dpr;
+      canvas.style.width = winW + "px";
+      canvas.style.height = winH + "px";
+
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      gl.clearColor(0.0, 0.0, 0.0, 0.0);
+
+      const aspect = winW / winH;
+      gl.uniformMatrix4fv(
+        uniforms.projection,
+        false,
+        buildProjection(CONFIG.FOV, aspect, 1, 10000, CONFIG.CAM_Z),
+      );
+      gl.uniform2f(uniforms.resolution, winW, winH);
+
+      const halfH = 110;
+      const halfW = aspect * halfH;
+      const halfD = 80;
+      gl.uniform3f(uniforms.worldSize, halfW, halfH, halfD);
+
+      const newCount = Math.round(aspect * CONFIG.COUNT);
+
+      if (newCount !== lastParticleCount) {
+        particleCount = newCount;
+        lastParticleCount = newCount;
+        initParticles(halfW, halfH, halfD, newCount, dpr);
+      }
+    }
+
     function handleResize() {
-      if (!isInitialized) return;
+      if (initState !== State.Ready) return;
       resize();
     }
 
     function pause() {
+      if (!isRunning) return;
       isRunning = false;
+      pausedElapsed += lastTime ? performance.now() - baseTime : 0;
       if (frameId) {
         cancelAnimationFrame(frameId);
         frameId = 0;
@@ -255,17 +276,19 @@
       if (!isRunning) return;
 
       if (lastTime === 0) {
+        baseTime = now;
         lastTime = now;
       }
 
       const delta = Math.min(100, now - lastTime);
       lastTime = now;
-      elapsedMs += delta;
 
-      const elapsed = elapsedMs / 5000;
+      const totalMs = pausedElapsed + (now - baseTime);
+      const elapsed = totalMs / 5000;
 
       windState.force += (windState.target - windState.force) * CONFIG.WIND_EASE;
       windState.current += windState.force * (delta * 0.2);
+      windState.current = windState.current % CONFIG.WIND_WRAP;
 
       if (Math.random() > 0.995) {
         const strength = CONFIG.WIND_MIN + Math.random() * (CONFIG.WIND_MAX - CONFIG.WIND_MIN);
@@ -277,6 +300,8 @@
 
       if (particleCount > 0) {
         gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, snowTexture);
         gl.drawArrays(gl.POINTS, 0, particleCount);
       }
 
@@ -284,11 +309,10 @@
     }
 
     function ensureRunning() {
-      if (!isInitialized) {
+      if (initState !== State.Ready) {
         scheduleInitialize();
         return;
       }
-
       if (isRunning) return;
 
       isRunning = true;
@@ -302,18 +326,18 @@
     }
 
     function initialize() {
-      if (isInitialized || isStarting) return;
-      isStarting = true;
+      if (initState !== State.Idle) return;
+      initState = State.Starting;
 
       bindCanvas();
       if (!canvas) {
-        isStarting = false;
+        initState = State.Idle;
         return;
       }
 
       const context = canvas.getContext("webgl") as WebGLRenderingContext | null;
       if (!context) {
-        isStarting = false;
+        initState = State.Idle;
         return;
       }
       gl = context;
@@ -361,18 +385,21 @@
       resize();
       setupTexture(SNOWFLAKE_TEXTURE);
 
-      elapsedMs = 0;
+      pausedElapsed = 0;
       lastTime = 0;
-
-      isInitialized = true;
-      isStarting = false;
+      initState = State.Ready;
 
       window.addEventListener("resize", handleResize);
+
+      document.addEventListener("visibilitychange", () => {
+        document.hidden ? pause() : ensureRunning();
+      });
+
       ensureRunning();
     }
 
     function scheduleInitialize() {
-      if (isInitialized || isStarting || initScheduled) return;
+      if (initState !== State.Idle || initScheduled) return;
       initScheduled = true;
 
       const runInit = () => {
@@ -389,9 +416,7 @@
         return;
       }
 
-      setTimeout(() => {
-        requestAnimationFrame(runInit);
-      }, 0);
+      setTimeout(() => requestAnimationFrame(runInit), 0);
     }
 
     document.addEventListener("astro:before-swap", pause);

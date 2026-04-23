@@ -15,7 +15,7 @@ const { title, description, mainClass = "" } = Astro.props;
 
 <BaseLayout title={title} description={description} bodyClass="w-full flex flex-col max-w-6xl">
   <Header />
-  <main class={`flex-1 ${mainClass}`.trim()}>
+  <main class={`flex-1 animate-in-bloom delay-300 ${mainClass}`.trim()}>
     <slot />
   </main>
   <Footer />

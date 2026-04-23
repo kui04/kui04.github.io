@@ -17,65 +17,65 @@
 }
 
 :root {
-  --raw-paper-50: #f2f5f7;
-  --raw-paper-100: #e9edf0;
-  --raw-paper-200: #dde3e8;
-  --raw-paper-300: #ced6dc;
-  --raw-paper-400: #b9c3ca;
+  --raw-paper-50: #eff4f8;
+  --raw-paper-100: #e5ecf2;
+  --raw-paper-200: #d6e2ea;
+  --raw-paper-300: #c6d4de;
+  --raw-paper-400: #afbfcc;
 
-  --raw-ink-50: #d4d9de;
-  --raw-ink-100: #b1bbc3;
-  --raw-ink-200: #8e9aa4;
-  --raw-ink-300: #6c7a86;
-  --raw-ink-400: #4b5b68;
-  --raw-ink-500: #2e3e4b;
-  --raw-ink-600: #192531;
-  --raw-ink-700: #0c141c;
+  --raw-ink-50: #cbd8e0;
+  --raw-ink-100: #a8b8c2;
+  --raw-ink-200: #86979f;
+  --raw-ink-300: #637580;
+  --raw-ink-400: #445866;
+  --raw-ink-500: #2a404e;
+  --raw-ink-600: #182e3c;
+  --raw-ink-700: #0c1e2c;
 
-  --raw-zhu-100: #f5ceca;
-  --raw-zhu-200: #e89890;
-  --raw-zhu-300: #d4635a;
-  --raw-zhu-400: #c0392b;
-  --raw-zhu-500: #9e2a1e;
-  --raw-zhu-600: #7a1f15;
+  --raw-zhu-100: #f5d0cc;
+  --raw-zhu-200: #e8a098;
+  --raw-zhu-300: #d4665e;
+  --raw-zhu-400: #c03a2b;
+  --raw-zhu-500: #9a2c20;
+  --raw-zhu-600: #782018;
 
-  --raw-qing-100: #cde3e8;
-  --raw-qing-200: #9bc1cc;
-  --raw-qing-300: #6ea2b2;
-  --raw-qing-400: #4a8294;
-  --raw-qing-500: #366272;
-  --raw-qing-600: #244552;
+  --raw-qing-100: #ccdfe8;
+  --raw-qing-200: #98c0d0;
+  --raw-qing-300: #68a0b8;
+  --raw-qing-400: #3c7e96;
+  --raw-qing-500: #2c6075;
+  --raw-qing-600: #1c4455;
 }
 
 .dark {
-  --raw-paper-50: #1a1f24;
-  --raw-paper-100: #13181d;
-  --raw-paper-200: #1c2329;
-  --raw-paper-300: #252d35;
-  --raw-paper-400: #323c46;
+  --raw-paper-50: #111820;
+  --raw-paper-100: #0c1318;
+  --raw-paper-200: #16202a;
+  --raw-paper-300: #1e2c38;
+  --raw-paper-400: #2a3c4a;
 
-  --raw-ink-50: #38434d;
-  --raw-ink-100: #55616b;
-  --raw-ink-200: #7c8a94;
-  --raw-ink-300: #a1aeb8;
-  --raw-ink-400: #c3ced6;
-  --raw-ink-500: #dae2e8;
-  --raw-ink-600: #e9edf0;
-  --raw-ink-700: #f2f5f7;
+  --raw-ink-50: #344452;
+  --raw-ink-100: #506070;
+  --raw-ink-200: #728698;
+  --raw-ink-300: #96aabc;
+  --raw-ink-400: #b8ccda;
+  --raw-ink-500: #d4e2ec;
+  --raw-ink-600: #e4eef4;
+  --raw-ink-700: #f0f5f8;
 
-  --raw-zhu-100: rgba(192, 57, 43, 0.15);
-  --raw-zhu-200: rgba(192, 57, 43, 0.3);
-  --raw-zhu-300: #c94a3a;
-  --raw-zhu-400: #d9564a;
-  --raw-zhu-500: #e8756a;
-  --raw-zhu-600: #f0a09a;
+  --raw-zhu-100: rgba(192, 58, 43, 0.15);
+  --raw-zhu-200: rgba(192, 58, 43, 0.28);
+  --raw-zhu-300: #c44838;
+  --raw-zhu-400: #d95548;
+  --raw-zhu-500: #e87060;
+  --raw-zhu-600: #f09888;
 
-  --raw-qing-100: rgba(58, 122, 140, 0.15);
-  --raw-qing-200: rgba(58, 122, 140, 0.3);
-  --raw-qing-300: #4a94a8;
-  --raw-qing-400: #5ba8b8;
-  --raw-qing-500: #7abfcc;
-  --raw-qing-600: #a8d8e0;
+  --raw-qing-100: rgba(60, 126, 150, 0.15);
+  --raw-qing-200: rgba(60, 126, 150, 0.28);
+  --raw-qing-300: #4a96ae;
+  --raw-qing-400: #5aaabf;
+  --raw-qing-500: #78c0d0;
+  --raw-qing-600: #a5d5df;
 }
 
 @theme inline {
@@ -102,4 +102,17 @@
   --font-serif: "LXGW WenKai", "Noto Serif SC", "STSong", Georgia, serif;
   --font-sans: "Noto Sans SC", "PingFang SC", system-ui, sans-serif;
   --font-mono: "Fira Code", "JetBrains Mono", monospace;
+
+  --animate-in-bloom: in-bloom 1.8s ease-in forwards;
+
+  @keyframes in-bloom {
+    0% {
+      opacity: 0;
+      transform: translateY(0.5rem);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
