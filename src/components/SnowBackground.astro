@@ -240,7 +240,7 @@
           );
 
           vec4 flake = texture2D(u_texture, rotated);
-          gl_FragColor = vec4(flake.rgb, flake.a * v_color.a) * 1.75;
+          gl_FragColor = vec4(flake.rgb, flake.a * v_color.a);
         }
       `,
       attributes: {
@@ -267,8 +267,8 @@
         enable: true,
         func: {
           srcRGB: "src alpha",
-          srcAlpha: "one",
           dstRGB: "one",
+          srcAlpha: "src alpha",
           dstAlpha: "one",
         },
       },
