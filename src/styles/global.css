@@ -99,7 +99,7 @@
   --color-qing-muted: var(--raw-qing-200);
   --color-qing-faint: var(--raw-qing-100);
 
-  --font-serif: "LXGW WenKai", "Noto Serif SC", "STSong", Georgia, serif;
+  --font-serif:"Noto Serif SC", "STSong", Georgia, serif;
   --font-sans: "Noto Sans SC", "PingFang SC", system-ui, sans-serif;
   --font-mono: "Fira Code", "JetBrains Mono", monospace;
 }
