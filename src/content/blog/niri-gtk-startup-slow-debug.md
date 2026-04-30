@@ -1,11 +1,11 @@
 ---
 title: "排查 GTK 应用在 niri 中首次启动缓慢"
-description: "在 NixOS + niri 环境中，因 xdg-desktop-portal 默认后端误设为 gnome 导致首次启动超时，改为 gtk 后解决。"
+description: "NixOS + niri 环境下 GTK 应用首次启动缓慢的排查过程：从误判 xdg-desktop-portal 到最终定位 MESA + Vulkan 渲染器问题，通过 GSK_RENDERER=gl 修复。"
 pubDate: "2026-04-30"
-tags: ["Linux", "NixOS", "Wayland", "niri"]
+tags: ["Linux", "NixOS", "Wayland", "GTK"]
 ---
 
-最近我在 NixOS + niri 的 Wayland 环境里碰到一个挺烦人的现象：`nautilus` 第一次启动很慢，但第二次再开就明显正常了。一开始我没有太在意。我下意识觉得这大概只是“首次启动”的缓存或初始化成本，等服务热起来就好了。后来我才发现，事情没有这么简单：**只要当前是首个窗口，它大概率还是会慢**，这时候我才决定认真排查一下。
+最近我在 NixOS + niri 的 Wayland 环境里碰到一个挺烦人的现象：`nautilus` 第一次启动很慢，但第二次再开就明显正常了。一开始我没有太在意，下意识觉得这大概只是"首次启动"的缓存或初始化成本，等服务热起来就好了。后来我才发现，事情没有这么简单：**只要当前是首个窗口，它大概率还是会慢**，这时候我才决定认真排查一下。
 
 ## 现象
 
@@ -27,9 +27,9 @@ MESA-INTEL: warning: ../src/intel/vulkan/anv_formats.c:949: FINISHME: support YU
 ** Message: 14:35:01.930: Connecting to org.freedesktop.Tracker3.Miner.Files
 ```
 
-它还是会连 Tracker，但整体速度已经正常很多。这个差异让我更倾向于把问题看成是 **某个会话服务在首次激活时卡住了**，而不是 Nautilus 每次都在做重活。
+它还是会连 Tracker，但整体速度已经正常很多。
 
-## 我最开始怀疑的方向
+## 初步排查
 
 刚看到这些日志时，我主要怀疑了三个方向：
 
@@ -37,14 +37,14 @@ MESA-INTEL: warning: ../src/intel/vulkan/anv_formats.c:949: FINISHME: support YU
 2. Mesa / Vulkan 初始化有额外开销
 3. `xdg-desktop-portal` 的配置有问题
 
-Mesa 的 warning 只是某些功能还未实现，不像真正拖慢启动的核心原因。Tracker 也确实在日志里出现了，不过它更像是“被动等待”的一部分，而不是根本问题。真正让我停下来重新看配置的，是 `Failed to initialize display server connection` 这一类信息。它不像普通的文件索引问题，更像是某个桌面集成路径在试图和当前会话对接，但对接对象不对。
+Tracker 也确实在日志里出现了，不过它更像是"被动等待"的一部分，而不是根本问题。`Failed to initialize display server connection` 这条错误看起来像某个桌面集成路径在试图和当前会话对接，但对接对象不对。当时 Mesa 那一堆 `FINISHME` 是 warning 级别，我觉得只是某些功能未实现，不像真正拖慢启动的核心原因——于是我把注意力放在了第三条：portal 配置上。
 
-## 查服务状态
+## 怀疑 xdg-desktop-portal
 
 接着我看了用户会话里的相关服务：
 
 ```bash
-systemctl --user status xdg-desktop-portal xdg-desktop-portal-gtk xdg-desktop-portal-gnome tracker-miner-fs-3
+systemctl --user status xdg-desktop-portal xdg-desktop-portal-gtk xdg-desktop-portal-gnome
 ```
 
 关键部分大致是这样：
@@ -65,14 +65,10 @@ xdg-desktop-portal-gnome.service - Portal service (GNOME implementation)
   Failed to associate portal window with parent window
 ```
 
-这时候方向就开始清晰了。`xdg-desktop-portal-gtk` 在跑，说明基础 portal 没问题；但 `xdg-desktop-portal-gnome` 也在跑，而且日志里持续有 GNOME Shell 相关错误。问题不是“portal 不存在”，而是 **portal 在当前会话里选了不合适的后端**。这也和我当时的环境吻合：我已经从 GNOME 切到了 niri，但配置里还保留了 GNOME 相关的默认 portal 选择。
-
-## 找到配置源头
-
-最后我回到 NixOS 配置，发现问题出在另一个模块 `flatpak.nix` 里：
+`xdg-desktop-portal-gnome` 的日志里持续有 GNOME Shell 相关错误。当时我已经从 GNOME 切到了 niri，但配置里还保留了 GNOME 相关的默认 portal 选择。我找到配置在 `flatpak.nix` 里：
 
 ```nix
-{pkgs, ...}: {
+{ pkgs, ... }: {
   config = {
     services.flatpak.enable = true;
     fonts.fontDir.enable = true;
@@ -80,35 +76,45 @@ xdg-desktop-portal-gnome.service - Portal service (GNOME implementation)
     xdg.portal = {
       enable = true;
       xdgOpenUsePortal = true;
-      extraPortals = with pkgs; [xdg-desktop-portal-gnome];
+      extraPortals = with pkgs; [ xdg-desktop-portal-gnome ];
       config.common.default = "gnome";
     };
   };
 }
 ```
 
-这里最关键的是这一行：`config.common.default = "gnome";` 这意味着系统会把 portal 请求默认交给 GNOME backend。对于 GNOME 会话来说，这没什么问题；但我现在是在 niri 里，GNOME backend 的很多假设都不成立。于是某些 GTK 应用第一次启动时，会先经历一轮 D-Bus 激活、backend 选择、失败回退或等待超时，体感上就成了“第一次很慢”。
+于是我做了这样一系列操作：把 portal 默认 backend 从 `gnome` 改成了 `gtk`，把配置单独拆到 `xdg-portal.nix` 里，并且加上注释。当时我觉得问题已经解决了——portal 服务在非 GNOME 会话里选了错误的后端，初始化时走了一轮失败回退，所以首次启动慢；第二次再开时服务已经起来了，自然就快了, **然而事实并非如此。**。
 
-## 为什么第二次会快很多
+## 被我忽略的 MESA 警告
 
-这点我后来也想明白了：第一次启动时，portal 相关服务要被激活，后端要选择，可能还要走一次失败路径；等这些服务已经起来以后，第二次再启动应用时，很多东西都已经常驻了，所以速度立刻恢复正常。所以它看起来像“缓存”，但本质上并不是应用本身做了什么缓存优化，而是 **会话服务已经完成初始化**。
+在 portal "修复"后的一次使用中，我注意到几个之前没在意的细节：
 
-## 修复
+1. **Chrome 也报了 Vulkan 相关警告**，终端里出现了 `--ozone-platform=wayland` 与 Vulkan 不兼容的提示。这意味着 Vulkan 渲染路径在 Wayland 下存在某种兼容性问题，而且不只影响 GTK 应用。
 
-我最后的修复方式其实很简单：**把 portal 的默认 backend 从 `gnome` 改回 `gtk`，同时保留 gnome 作为可选 backend**。我把这部分单独拆到了一个 `xdg-portal.nix` 里：
+2. **File Roller 也有同样的 MESA 警告**，终端里出现了和 nautilus 一模一样的 `MESA-INTEL: warning`：
+
+```
+MESA-INTEL: warning: ../src/intel/vulkan/anv_formats.c:981: FINISHME: support more multi-planar formats with DRM modifiers
+MESA-INTEL: warning: ../src/intel/vulkan/anv_formats.c:949: FINISHME: support YUV colorspace with DRM format modifiers
+```
+
+回头看最初的日志，MESA 的 warning 从来就没消失过——不管 portal 配置怎么改，它一直都在。我之前把它当成无害的 warning 忽略了，但现在 Chrome 的 Vulkan 兼容性警告和 file-roller 同款 MESA 报错让我开始怀疑。
+
+## 顺藤摸瓜
+
+带着这两个 `warning`，很快就搜到了相关的 issue：
+
+- [GNOME Discourse: GNOME 48 graphics issues (mesa)](https://discourse.gnome.org/t/gnome-48-graphics-issues-mesa/29300) — 有用户报告 GNOME 48 下 GTK 应用出现渲染异常，同样是 MESA-INTEL 的 `FINISHME` 警告，修复方式也是设置 `GSK_RENDERER=gl`
+
+- [MESA GitLab: hasvk corrupted graphics for gtk4 apps in vulkan renderer](https://gitlab.freedesktop.org/mesa/mesa/-/work_items/13319) — MESA 上游确认了 hasvk（Intel 旧平台 Vulkan 驱动）在 GTK4 的 Vulkan 渲染器下存在渲染异常，相关 commit 曾被合入后又 revert，说明问题仍在修复中
+
+- [Arch Linux Forums: Gnome 47 Apps doesn't launch until vulkan-intel is uninstalled](https://bbs.archlinux.org/viewtopic.php?id=299546) — Arch 用户遇到同样的问题：GTK 应用在安装 `vulkan-intel` 后无法启动，卸载后正常。讨论中有人指出 GNOME 47 开始将 Vulkan 渲染设为默认，设置 `GSK_RENDERER=ngl` 可以绕过问题
+
+所以大概率就是 Mesa 的问题了，这个问题暂时还没有解决，临时修复下：强制 GTK 使用 OpenGL 进行渲染：
 
 ```nix
-{pkgs, ...}: {
-  xdg.portal = {
-    enable = true;
-    xdgOpenUsePortal = true;
-    extraPortals = with pkgs; [
-      xdg-desktop-portal-gtk
-      # recommended by upstream, required for screencast support
-      # https://github.com/YaLTeR/niri/wiki/Important-Software#portals
-      xdg-desktop-portal-gnome
-    ];
-    config.common.default = "gtk";
-  };
-}
+environment.sessionVariables = {
+  # Force GTK to use the GL renderer, related issue: https://gitlab.freedesktop.org/mesa/mesa/-/work_items/13319
+  GSK_RENDERER = "gl";
+};
 ```
