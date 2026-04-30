@@ -653,26 +653,102 @@ async function loadDetail(userId) {
 }
 ```
 
-`async` 函数有以下几个要点：
-
-- 函数的返回值无论是什么，都会被自动包装成 Promise；
-- `await` 只能在 `async` 函数内使用（ES2022 后，模块顶层可以直接使用 Top-level await）；
-- `await` 暂停的是当前 `async` 函数的执行，**不会阻塞主线程**——暂停后，`await` 后面的代码被注册为微任务，主线程立即去执行其他任务。
+`async` 和 `await` 各自做了什么？先说 **`async`**：它修饰一个函数，确保该函数的**返回值始终是一个 Promise**。如果函数体 `return` 的是普通值，JS 引擎会自动用 `Promise.resolve()` 包装；如果函数体抛出异常，则返回一个 rejected 的 Promise：
 
 ```js
-async function example() {
-  console.log("A");
-  await Promise.resolve(); // 暂停，将后续代码注册为微任务，让出主线程
-  console.log("C"); // 作为微任务，在当前宏任务结束后执行
+async function foo() {
+  return 42;
+}
+// 等价于
+function foo() {
+  return Promise.resolve(42);
 }
 
-example();
-console.log("B"); // example 让出后，主线程继续执行这里
-
-// 输出：A → B → C
+async function bar() {
+  throw new Error("oops");
+}
+// 等价于
+function bar() {
+  return Promise.reject(new Error("oops"));
+}
 ```
 
-结合事件循环来理解 Promise 和 `async/await`，整个 JS 异步模型就清晰了：Promise 的回调（`.then`）进入微任务队列，在当前宏任务结束后**立刻**被处理，优先于下一个宏任务（如 `setTimeout` 的回调）。`async/await` 只是把这套机制包上了一层更易读的外衣。
+再说 **`await`**：它只能在 `async` 函数内使用（ES2022 起模块顶层也可以），做的事情有两个：
+
+1. **包装 Promise**：`await` 后面跟的表达式会被传入 `Promise.resolve()`。如果它本身就是一个 Promise，直接使用；如果是普通值，就包装成一个立即 fulfilled 的 Promise。也就是说，`await 42` 和 `await Promise.resolve(42)` 是等价的。
+
+2. **交出控制权**：`await` 会暂停当前 `async` 函数的执行，将 `await` 之后的代码注册为一个**微任务**（等效于 `.then(callback)`），然后**立即让出主线程的控制权**，主线程继续执行调用栈中剩余的同步代码。等到当前宏任务的同步代码全部执行完毕、微任务队列被清空时，`await` 后面的代码才会被调度执行。
+
+结合事件循环来理解：`await` 后面的代码，本质上就是被拆成了 `.then()` 的回调，进入微任务队列。下面这个例子可以清楚地看到整个过程：
+
+```js
+console.log("script start");
+
+async function async1() {
+  console.log("async1 start");
+  await async2();
+  console.log("async1 end");
+}
+
+async function async2() {
+  console.log("async2");
+}
+
+Promise.resolve().then(() => {
+  console.log("promise then1");
+  setTimeout(() => {
+    console.log("promise then1 setTimeout");
+  });
+});
+
+setTimeout(() => {
+  console.log("settimeout");
+});
+
+async1();
+console.log("script end");
+```
+
+逐步拆解执行过程：
+
+1. `console.log('script start')` → 同步输出 **script start**。
+2. `Promise.resolve().then(...)` → 将回调注册为微任务，进入微任务队列。
+3. `setTimeout(...)` → 将回调委托给浏览器计时器线程，0ms 后回调进入宏任务队列。
+4. 调用 `async1()`：
+   - `console.log('async1 start')` → 同步输出 **async1 start**。
+   - `await async2()` → 调用 `async2()`，其函数体同步执行，遇到 `Promise` 再交出控制权，输出 **async2**。`async2()` 没有显式 `return`，返回 `Promise.resolve(undefined)`。
+   - `await` 将 `async1` 中剩下的代码（`console.log('async1 end')`）注册为微任务，然后**交出控制权**，`async1()` 暂停。
+5. `console.log('script end')` → 同步输出 **script end**。
+
+至此，整个 `<script>` 宏任务的同步代码执行完毕。事件循环开始清空微任务队列，队列中当前有两个微任务：
+
+- 步骤 2 注册的 `.then()` 回调
+- 步骤 4 中 `await` 注册的续执行代码
+
+微任务按 FIFO 顺序执行：
+
+6. 先执行 `.then()` 回调 → 输出 **promise then1**。其中又注册了一个 `setTimeout`，其回调进入宏任务队列。
+7. 再执行 `await` 的续执行代码 → 输出 **async1 end**。
+
+微任务队列清空后，事件循环进入下一轮，从宏任务队列取任务（FIFO）：
+
+8. 第一个 `setTimeout` 回调 → 输出 **settimeout**。
+9. 第二个 `setTimeout` 回调（由微任务内部注册）→ 输出 **promise then1 setTimeout**。
+
+最终输出顺序：
+
+```
+script start
+async1 start
+async2
+script end
+promise then1
+async1 end
+settimeout
+promise then1 setTimeout
+```
+
+从这个例子可以清晰看到 `await` 交出控制权的时机——`await async2()` 之后的代码并没有在 `async2()` 返回后立即执行，而是被推迟到了当前宏任务结束后、作为微任务执行。这也印证了 `async/await` 本质上就是 Promise + `.then()` 的语法糖。
 
 ---
 
