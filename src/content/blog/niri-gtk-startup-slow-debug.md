@@ -113,8 +113,8 @@ MESA-INTEL: warning: ../src/intel/vulkan/anv_formats.c:949: FINISHME: support YU
 所以大概率就是 Mesa 的问题了，这个问题暂时还没有解决，临时修复下：强制 GTK 使用 OpenGL 进行渲染：
 
 ```nix
-environment.variables = {
-  # Force GTK to use the GL renderer, and related issue: https://gitlab.freedesktop.org/mesa/mesa/-/work_items/13319
+environment.sessionVariables = {
+  # Force GTK to use the GL renderer, related issue: https://gitlab.freedesktop.org/mesa/mesa/-/work_items/13319
   GSK_RENDERER = "gl";
 };
 ```
